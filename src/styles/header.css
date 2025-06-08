@@ -1,0 +1,42 @@
+.logo{ 
+    display: flex;
+}
+.logo img{
+    width: 4.375rem;
+    height: 100%;
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* bem alto pra ficar sobre tudo */
+  align-items: center;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* opcional: previne transparência total */
+  backdrop-filter: blur(6px);           /* opcional: dá um efeito de vidro */
+}
+.titulo{
+    display: flex;
+    justify-content: center;
+    color: white;
+}
+.menu-header{
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 25px;
+    font-size: 35px;
+    color: white;
+}
+.silk{
+    display: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 90px;
+    z-index: 1;
+}
+.header-container{
+    position: relative;
+    z-index: 2;
+}

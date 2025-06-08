@@ -1,0 +1,121 @@
+.container-inscricao {
+  border: 2px solid rgb(81, 61, 112);
+  border-radius: 10px;
+  margin-left: 15px;
+  margin-right: 15px;
+  padding: 20px; /* mais espaçamento interno */
+  background-color: rgba(22, 18, 31, 0.7);
+    font-family: 'Roboto', sans-serif;
+max-width: 600px;
+}
+
+.titulo-inscricao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(191, 155, 255);
+  font-size: 18px;
+  margin-bottom: 8px;
+  margin-top:10px
+}
+.modal-separado{
+    margin-top: 15px;
+}
+.titulo-inscricao p {
+  color: rgb(169, 135, 255);
+  line-height: 1;
+  margin: 0;
+}
+
+.titulo-inscricao svg {
+  width: 25px;
+  height: 25px;
+}
+
+.sobre-inscricao {
+  margin-top: 10px;
+  color: rgb(210, 200, 235);
+  font-size: 15px;
+
+}
+.inscricao{
+    color: white !important;
+    font-size: 25px;
+}
+.formulario-de-inscricao{
+    display: flex;
+     color: rgb(191, 155, 255);
+    font-size: 30px;
+    gap: 10px;
+}
+.botao-inscricao {
+  background-color: rgb(136, 84, 255);
+  color: rgb(255, 255, 255);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px 24px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 8px;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(136, 84, 255, 0.3);
+}
+
+.botao-inscricao:hover {
+  background-color: rgb(95, 48, 180);
+  transform: translateY(-1px);
+}
+
+.botao-inscricao:active {
+  transform: translateY(0);
+}
+
+.botao-inscricao:disabled {
+  background-color: rgb(60, 45, 90);
+  color: rgb(180, 160, 200);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Inputs e selects mais altos e proporcionais */
+input,
+select,
+textarea {
+  background-color: rgb(40, 30, 58);
+  color: rgb(240, 235, 255);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  padding: 12px 16px; /* Altura confortável */
+  border: 1px solid rgb(81, 61, 112);
+  border-radius: 8px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: rgb(150, 130, 180);
+  opacity: 1;
+  font-style: italic;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgb(169, 135, 255);
+  box-shadow: 0 0 0 2px rgba(169, 135, 255, 0.3);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: rgb(30, 25, 45);
+  color: rgb(180, 160, 200);
+  cursor: not-allowed;
+}
