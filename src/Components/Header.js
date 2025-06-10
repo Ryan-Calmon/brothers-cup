@@ -1,6 +1,6 @@
 import React from 'react';
 import "../styles/header.css";
-import logo from "../images/logo-branca.png";
+import logo from "../images/logo-brothers.png";
 
 import Silk from './Silk';
 import FuzzyText from './FuzzyText';
@@ -15,7 +15,7 @@ return(
             <div className='col-4'> 
                 <div className='logo'>
                     <a href="#home">
-                        <img src={logo} alt="Logo"/>
+                        <img className="logoBrothers"src={logo} alt="Logo"/>
                     </a>
                 </div>
              </div>

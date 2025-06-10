@@ -28,6 +28,9 @@ header {
     font-size: 35px;
     color: white;
 }
+.logoBrothers{
+    filter: grayscale(0);
+}
 .silk{
     display: none;
     position: absolute;
