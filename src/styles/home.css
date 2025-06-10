@@ -1,16 +1,65 @@
 .home-container {
-  position: relative;
-  overflow: hidden;
+    display: flex;
+    justify-content: center;
+    padding: 20px 20px;
 }
 
-.circular-gallery {
-  position: relative;
-  z-index: 1;
-  top: -120px;
+.foto-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 800px;
+
 }
-.titulo{
-    color: white;
-    font-size: 35px;
-    font-weight: 150;
-    font-family: 'Cal Sans', sans-serif;
+.foto-container img{
+    filter: grayscale(0);
+}
+.foto-divulgacao {
+    width: 100%; /* Garante que a imagem ocupe toda a largura do container */
+    height: auto; /* Mantém a proporção da imagem */
+    display: block;
+    border-radius: 10px; /* Para a imagem ter cantos arredondados */
+}
+.foto-divulgacao-pc{
+    border-radius: 10px;
+}
+@property --angle{
+    syntax: "<angle>" ;
+    initial-value: 0deg;
+    inherits: false;
+}
+.foto-container::after, .foto-container::before {
+    content: '';
+    position: absolute;
+    top: -5px;  /* Faz a borda sair para fora */
+    left: -5px; /* Faz a borda sair para fora */
+    right: -5px; /* Faz a borda sair para fora */
+    bottom: -5px; /* Faz a borda sair para fora */
+    border-radius: 10px; /* Deixa a borda arredondada, como a imagem */
+    background-image: conic-gradient(from var(--angle), transparent 50%, rgb(115, 53, 209));
+    z-index: -1;
+    animation: 3s spin linear infinite;
+}
+.foto-container::before {
+    filter: blur(1.5rem);
+    opacity: 0.6;
+}
+
+@keyframes spin{
+    from{
+        --angle: 0deg;
+    }
+    to{
+        --angle: 360deg;
+    }
+}
+@media screen and (max-width:768px) {
+    .foto-divulgacao-pc{
+        display: none;
+    }
+}
+@media screen and (min-width:768px) {
+    .foto-divulgacao{
+        display: none;
+    }
 }

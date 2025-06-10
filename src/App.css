@@ -6,10 +6,16 @@
   height: 40vmin;
   pointer-events: none;
 }
+/* Garante que o body e o root ocupem toda a tela */
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* Garante que não haja barra de rolagem horizontal */
+  display: block;
+  justify-content: center;
+  align-items: center;
 }
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {

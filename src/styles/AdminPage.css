@@ -1,0 +1,176 @@
+/* Garantir que o body ocupe toda a largura da tela */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden; /* Impede o scroll horizontal */
+}
+
+/* Ajustes no container da página de admin */
+/* Ajustes no container da página de admin */
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+  width: 100%;  /* Garante que ocupe 100% da largura */
+  box-sizing: border-box;
+}
+
+/* Estilo do botão de fechar dentro do formulário */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: red;
+}
+
+.close-button:hover {
+  color: darkred;
+}
+
+/* Estilo para o formulário de edição */
+.edit-form {
+  width: 100%;
+  max-width: 1200px; /* Ajusta a largura máxima da tabela */
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  overflow-x: auto;
+  position: relative; /* Garante que o botão de fechar fique dentro da div */
+}
+
+/* Outros estilos */
+.admin-title {
+  color: white;
+}
+
+.save-button {
+  background-color: #1976d2;
+  font-size: 25px;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+
+.search-input {
+  width: 100%;
+   max-width: 700px;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  background-color:#6a0f81 ;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.inscricoes-list {
+  width: 100%;
+  max-width: 1500px; /* Ajusta a largura máxima da tabela */
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+  overflow-x: auto; /* Permite rolagem horizontal em tabelas grandes */
+}
+
+.inscricoes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.inscricoes-table th, .inscricoes-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.inscricoes-table th {
+  background-color: #6a0f81;
+  color: white;
+  font-weight: bold;
+}
+
+.inscricoes-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+/* Botões de ação */
+.admin-button {
+  padding: 8px 16px;
+  margin-right: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.edit-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #45a049;
+}
+
+.delete-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #e53935;
+}
+
+.back-button {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.back-button:hover {
+  background-color: #1976d2;
+}
+
+.edit-form label {
+  color: black;
+}
+.edit-form input{
+  background-color: #6a0f81;
+}
+.edit-form select{
+  background-color: rgb(106, 15, 129);
+}
+/* AdminPage.css */
+.logout-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.logout-button:hover {
+  background-color: #d32f2f;
+}

@@ -1,0 +1,21 @@
+.primeiraetapa-container {
+  margin-top:50px;
+  position: relative;
+  overflow: hidden;
+}
+
+.circular-gallery {
+  position: relative;
+  z-index: 1;
+  top: -120px;
+}
+.titulo{
+    color: white;
+    font-size: 35px;
+    font-weight: 150;
+    font-family: 'Cal Sans', sans-serif;
+}
+.galeria{
+  display: flex;
+  justify-content: center;
+}

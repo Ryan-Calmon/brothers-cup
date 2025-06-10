@@ -1,26 +1,21 @@
 import React from "react";
-import CircularGallery from './CircularGallery';
-import imagemFundo from  '../images/imagem-fundo.jpg';
+import ImagemBanner from "../images/imagem-banner.jpg";
+import ImagemBannerPC from "../images/imagem-banner-pc.jpg";
 import "../styles/home.css";
-import DecryptedText from './DecryptedText';
 function Home(){
 
-    return(
-        <div className="home-container">
-            <div className="titulo">
-            <div style={{ marginTop: '4rem' }}>
-            <DecryptedText
-             text="Nossa primeira etapa!"
-             animateOn="view"
-             revealDirection="center"
-                />
-</div>
-            </div>
-        <div style={{ height: '600px', position: 'relative' }}>
-         <CircularGallery bend={0} textColor="#ffffff" borderRadius={0.05} />
-        </div>
-        </div>
-    );
 
+
+    return(
+    <div>
+        <div className="home-container">
+            <div className="foto-container">
+                <img className="foto-divulgacao" src={ImagemBanner} />
+                 <img className="foto-divulgacao-pc" src={ImagemBannerPC} />
+            </div>
+        </div>
+
+    </div>
+    );
 }
 export default Home;
