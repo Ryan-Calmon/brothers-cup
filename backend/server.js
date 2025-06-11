@@ -22,6 +22,7 @@ mongoose.connect(MONGO_URI, {
 const inscricaoSchema = new mongoose.Schema({
   id: { type: Number, required: true, unique: true }, // ID numérico para pesquisa
   representante: String,
+  celular: String,
   parceiro: String,
   instagramRepresentante: String,
   instagramParceiro: String,
