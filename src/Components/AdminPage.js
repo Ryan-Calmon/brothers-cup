@@ -106,6 +106,7 @@ function AdminPage() {
             <tr>
               <th>ID</th>
               <th>Representante</th>
+              <th>Celular</th>
               <th>Parceiro</th>
               <th>Instagram Representante</th>
               <th>Instagram Parceiro</th>
@@ -120,6 +121,7 @@ function AdminPage() {
               <tr key={inscricao._id}> {/* Usando _id como chave */}
                 <td>{inscricao.id}</td> {/* Exibe o ID gerado manualmente */}
                 <td>{inscricao.representante}</td>
+                <td>{inscricao.celular}</td>
                 <td>{inscricao.parceiro}</td>
                 <td>{inscricao.instagramRepresentante}</td>
                 <td>{inscricao.instagramParceiro}</td>

@@ -17,12 +17,14 @@ function FormularioInscricao() {
     categoria: '',
     ctRepresentante: '',
     ctParceiro: '',
+    celular: '',
     segundaInscricao: false,
+    aceitarTermos: false, // Novo estado para o checkbox
   });
 
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [error, setError] = useState('');
-  const [message, setMessage] = useState(''); // Mensagem adicional
+  const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -37,7 +39,8 @@ function FormularioInscricao() {
       'instagramParceiro',
       'uniformeRepresentante',
       'uniformeParceiro',
-      'categoria'
+      'categoria',
+      'aceitarTermos', // Verifica se o checkbox de termos foi marcado
     ];
 
     const novosInvalidos = {};
@@ -48,10 +51,14 @@ function FormularioInscricao() {
       }
     });
 
+    if (!formData.aceitarTermos) {
+      novosInvalidos.aceitarTermos = true; // Marcar como inválido se não for aceito
+    }
+
     setCamposInvalidos(novosInvalidos);
 
     if (Object.keys(novosInvalidos).length > 0) {
-      setError('Por favor, preencha todos os campos obrigatórios.');
+      setError('Por favor, preencha todos os campos obrigatórios e aceite os Termos e Condições.');
       return;
     }
 
@@ -66,6 +73,7 @@ function FormularioInscricao() {
         alert('Inscrição enviada com sucesso!');
         setFormData({
           representante: '',
+          celular: '',
           parceiro: '',
           instagramRepresentante: '',
           instagramParceiro: '',
@@ -75,6 +83,7 @@ function FormularioInscricao() {
           ctRepresentante: '',
           ctParceiro: '',
           segundaInscricao: false,
+          aceitarTermos: false, // Resetar o estado do checkbox
         });
         setCamposInvalidos({});
         setError('');
@@ -97,7 +106,7 @@ function FormularioInscricao() {
         </div>
 
         <div className='formulario-iscricao'>
-
+          {/* Dados da Dupla */}
           <div className='modal-separado'>
             <div className='titulo-inscricao'>
               <IoMdPeople />
@@ -127,8 +136,22 @@ function FormularioInscricao() {
                 />
               </div>
             </div>
+            <div className="row">
+              <div className='col-12 col-md-6'>
+                <p className='sobre-inscricao'> Telefone do Representante </p>
+                <input
+                  type="text"
+                  name="celular"
+                  value={formData.celular}
+                  onChange={handleChange}
+                  placeholder="Telefone com DDD *"
+                  className={`input ${camposInvalidos.parceiro ? 'input-invalido' : ''}`}
+                />
+              </div>
+            </div>
           </div>
 
+          {/* Instagram */}
           <div className='modal-separado'>
             <div className='titulo-inscricao'>
               <CiInstagram />
@@ -160,6 +183,7 @@ function FormularioInscricao() {
             </div>
           </div>
 
+          {/* CTs */}
           <div className='modal-separado'>
             <div className='titulo-inscricao'>
              <MdOutlineStadium />
@@ -191,6 +215,7 @@ function FormularioInscricao() {
             </div>
           </div>
 
+          {/* Tamanho dos Uniformes */}
           <div className='modal-separado'>
             <div className='titulo-inscricao'>
               <IoShirt />
@@ -232,6 +257,7 @@ function FormularioInscricao() {
             </div>
           </div>
 
+          {/* Categoria */}
           <div className='modal-separado'>
             <div className='row'>
               <p className='titulo-inscricao'>Categoria</p>
@@ -253,6 +279,7 @@ function FormularioInscricao() {
             </div>
           </div>
 
+          {/* Segunda Inscrição */}
           <div className="modal-separado">
             <div className="checkbox-wrapper">
               <input
@@ -267,20 +294,51 @@ function FormularioInscricao() {
             </div>
           </div>
 
-          {/* Exibir mensagem quando a segunda inscrição for marcada */}
+          {/* Termos e Condições */}
+          <div className="modal-separado">
+            <div className="termos-container">
+              <input
+                type="checkbox"
+                id="AceitarTermos"
+                name="aceitarTermos"
+                className="AceitarTermos"
+                checked={formData.aceitarTermos}
+                onChange={handleChange}
+              />
+              <label htmlFor="AceitarTermos">
+                Aceito os{" "}
+                <a href="/docs/termos-e-condicoes.pdf" target="_blank" rel="noopener noreferrer">
+                  Termos e Condições
+                </a>{" "}
+                e o{" "}
+                <a href="/docs/termo-privacidade.pdf" target="_blank" rel="noopener noreferrer">
+                  Termo de Privacidade
+                </a>
+              </label>
+            </div>
+          </div>
+
+          {/* Exibir mensagem de erro se os termos não forem aceitos */}
+          {camposInvalidos.aceitarTermos && (
+            <p style={{ color: 'red', marginTop: '10px' }}>
+              Por favor, aceite os Termos e Condições.
+            </p>
+          )}
+
+          {/* Exibir a mensagem para segunda inscrição */}
           {formData.segundaInscricao && (
             <p style={{ color: 'red', marginTop: '10px' }}>
-              Para segunda inscrição, por favor, nos mande um direct.
+              Para segunda inscrição, por favor, nos mande um direct!
             </p>
           )}
 
           {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
 
-          {/* Desabilitar o botão quando "segundaInscricao" for verdadeiro */}
+          {/* Botão desativado quando "Segunda inscrição" estiver marcada */}
           <button
             className='botao-inscricao'
             onClick={handleSubmit}
-            disabled={formData.segundaInscricao}  // Botão desativado
+            disabled={formData.segundaInscricao}  // Desativa o botão se "Segunda inscrição" estiver marcada
           >
             Inscrever-se
           </button>

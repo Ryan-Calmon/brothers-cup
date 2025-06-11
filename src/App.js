@@ -7,6 +7,7 @@ import Inscricao from './Components/FormularioInscricao';
 import Lightning from './Components/Lightning';
 import AdminPage from './Components/AdminPage'; // Página de admin
 import LoginPage from './Components/LoginPage'; // Página de login
+import Contato from './Components/Contato';
 import './App.css';
 
 function App() {
@@ -57,8 +58,11 @@ function App() {
               <section id="inscricao">
                 <Inscricao />
               </section>
-                <section id="primeira etapa">
+                <section id="primeiraetapa">
                 <PrimeiraEtapa />
+              </section>
+              <section id="contato">
+                <Contato />
               </section>
             </div>
           } />

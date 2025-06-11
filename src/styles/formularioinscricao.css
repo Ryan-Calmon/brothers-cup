@@ -1,4 +1,5 @@
 .container-inscricao {
+  margin-top: 150px;
   border: 2px solid rgb(81, 61, 112);
   border-radius: 10px;
   margin-left: 15px;
@@ -8,6 +9,23 @@
     font-family: 'Roboto', sans-serif;
 max-width: 600px;
 }
+.termos-container{
+   display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  color: white;
+  font-size: 16px;
+}
+.termos-container label{
+  color: white;
+   
+}
+
+.AceitarTermos{
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
 .checkbox-wrapper {
   display: flex;
   align-items: center;
@@ -15,6 +33,9 @@ max-width: 600px;
   gap: 10px;
   color: white;
   font-size: 16px;
+}
+.checkbox-wrapper label{
+  color: white;
 }
 .input-invalido {
   border: 2px solid red !important;

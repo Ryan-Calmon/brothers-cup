@@ -14,11 +14,11 @@ const imageUrls = [
   imagem1,
   imagem2,
   imagem3,
-  imagem4,
+  imagem7,
   imagemfundo,
   imagem5,
   imagem6,
-  imagem7,
+  imagem4,
   imagem8,
   imagem9,
  
