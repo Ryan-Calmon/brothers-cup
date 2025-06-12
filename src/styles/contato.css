@@ -33,3 +33,12 @@ font-size: 70px;  /* Altera o tamanho do ícone */
     color: white;
     font-size: 55px;
 }
+@media (max-width: 768px) {
+    .icones {
+    display: grid; /* Usando grid em vez de flex */
+    grid-template-columns: repeat(2, 1fr); /* 2 colunas */
+    gap: 20px; /* Ajuste o gap conforme necessário */
+    justify-items: center; /* Alinha os itens no centro */
+    font-size: 70px;  /* Altera o tamanho do ícone */
+}
+}
