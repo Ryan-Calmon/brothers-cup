@@ -9,6 +9,7 @@ import AdminPage from './Components/AdminPage'; // Página de admin
 import LoginPage from './Components/LoginPage'; // Página de login
 import Contato from './Components/Contato';
 import Footer from './Components/Footer';
+import Local from './Components/Local';
 import './App.css';
 
 function App() {
@@ -58,6 +59,9 @@ function App() {
 
               <section id="inscricao">
                 <Inscricao />
+              </section>
+               <section id="local">
+                <Local />
               </section>
                 <section id="primeiraetapa">
                 <PrimeiraEtapa />

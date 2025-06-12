@@ -1,0 +1,38 @@
+.local-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 150px;
+}
+
+.local-do-torneio {
+  text-align: center;
+  color: white;
+  font-size: 44px;
+  margin-bottom: 20px;
+}
+.endereco{
+    color: white;
+    font-size: 20px;
+}
+.local-container {
+  display: flex;
+  justify-content: center; /* Centraliza horizontalmente */
+  align-items: center;     /* Centraliza verticalmente se necessário */
+  flex-direction: column;
+  width: 100%;             /* Garante que o contêiner ocupe a largura inteira */
+}
+
+.leaflet-container {
+  height: 80vh;            /* Ajuste da altura para cobrir mais área vertical */
+  width: 80%;              /* Aumenta a largura do mapa */
+  border: 5px solid rgb(136, 84, 255);
+}
+
+@media screen and (min-width: 768px) {
+  .local-container {
+    width: 60%;            /* Aumenta a largura no celular para 90% */
+    height: 80vh;          /* Ajusta a altura no celular para 60% */
+  }
+}
