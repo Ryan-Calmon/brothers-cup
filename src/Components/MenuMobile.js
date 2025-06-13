@@ -44,11 +44,12 @@ const MenuMobile = () => {
               <nav className="navbarMobile">
                 <ul>
                   <li><a href="#inicio" onClick={toggleMenu}>Início</a></li>
-                  <li><a href="#inscricao" onClick={toggleMenu}>Inscrição</a></li>
+                  <li><a href="#inscricao" onClick={toggleMenu}>INSCRIÇÃO</a></li>
+                  <li><a href="/tabelas"  onClick={toggleMenu}>Tabelas</a></li>
                   <li><a href="#local" onClick={toggleMenu}>Local</a></li>
                   <li><a href="#primeiraetapa"  onClick={toggleMenu}>Galeria</a></li>
                   <li><a href="#contato"  onClick={toggleMenu}>Contato</a></li>
-                  <li><a href="/tabelas"  onClick={toggleMenu}>Tabelas</a></li>
+            
                 </ul>
               </nav>
             </motion.div>

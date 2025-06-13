@@ -347,7 +347,7 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
               />
               <label htmlFor="AceitarTermos">
                 Aceito os{" "}
-                <a href="/docs/termos-e-condicoes2.pdf" target="_blank" rel="noopener noreferrer">
+                <a href="/docs/termos_e_condicoes_com_atraso.pdf" target="_blank" rel="noopener noreferrer">
                   Termos e Condições
                 </a>{" "}
                 e o{" "}
