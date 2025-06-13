@@ -1,0 +1,46 @@
+.tabela-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Estilo dos botões */
+.tabela-botao {
+  margin: 8px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  background: #9c24b5;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  min-width: 200px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Mobile: 1 por linha, centralizado */
+@media (max-width: 768px) {
+  .tabela-botoes {
+    flex-direction: column;
+    align-items: center;
+  }
+  .tabela-botao {
+    width: 90%;
+    min-width: unset;
+  }
+}
+
+/* Sempre 4 por linha: para tablets e desktop (garante 4 por linha em qualquer resolução) */
+@media (min-width: 769px) {
+  .tabela-botoes {
+    flex-direction: row;
+    justify-content: center;
+    gap: 24px;
+  }
+  .tabela-botao {
+    flex: 1 1 calc(25% - 32px); /* 4 por linha, largura ajustada */
+    max-width: 300px;
+  }
+}

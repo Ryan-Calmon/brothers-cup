@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaTrophy } from "react-icons/fa";
 import { IoMdPeople } from "react-icons/io";
 import { IoShirt } from "react-icons/io5";
@@ -7,6 +7,31 @@ import { MdOutlineStadium } from "react-icons/md";
 import "../styles/formularioinscricao.css";
 
 function FormularioInscricao() {
+const [vagasRestantes, setVagasRestantes] = useState(null);
+const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+
+useEffect(() => {
+  if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
+    checkVagasDisponiveis(categoriaSelecionada);
+  } else {
+    setVagasRestantes(null);
+  }
+}, [categoriaSelecionada]);
+
+const checkVagasDisponiveis = async (categoria) => {
+  try {
+    const res = await fetch(`http://localhost:5000/vagas/${categoria}`);
+    const data = await res.json();
+    setVagasRestantes(data.vagas);
+  } catch (err) {
+    setVagasRestantes(null);
+    console.error('Erro ao verificar vagas:', err);
+  }
+};
+
+const isCategoriaSemVagas = vagasRestantes === 0;
+const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vagasRestantes > 0;
+
   const [formData, setFormData] = useState({
     representante: '',
     parceiro: '',
@@ -265,17 +290,32 @@ function FormularioInscricao() {
                 className={`input ${camposInvalidos.categoria ? 'input-invalido' : ''}`}
                 name="categoria"
                 value={formData.categoria}
-                onChange={handleChange}
+                onChange={e => {
+                  handleChange(e);
+                  setCategoriaSelecionada(e.target.value);
+                }}
               >
                 <option>Categoria</option>
                 <option>Open</option>
+                <option>Escolinha</option>
+                <option>Feminino Iniciante</option>
+                <option>Misto Escolinha</option>
                 <option>Misto Iniciante</option>
                 <option>Misto Intermediário</option>
-                <option>Escolinha</option>
                 <option>Masculino Iniciante</option>
-                <option>Masculino A</option>
-                <option>Feminino Iniciante</option>
+                <option>Masculino Intermediário </option>
+              
               </select>
+              {temVagasRestantes && (
+                <p style={{ color: 'orange', marginTop: '10px' }}>
+                  Restam apenas {vagasRestantes} vagas nesta categoria!
+                </p>
+              )}
+              {isCategoriaSemVagas && (
+                <p style={{ color: 'red', marginTop: '10px' }}>
+                  Não há mais vagas nesta categoria.
+                </p>
+              )}
             </div>
           </div>
 
@@ -307,7 +347,7 @@ function FormularioInscricao() {
               />
               <label htmlFor="AceitarTermos">
                 Aceito os{" "}
-                <a href="/docs/termos-e-condicoes.pdf" target="_blank" rel="noopener noreferrer">
+                <a href="/docs/termos-e-condicoes2.pdf" target="_blank" rel="noopener noreferrer">
                   Termos e Condições
                 </a>{" "}
                 e o{" "}
@@ -334,11 +374,11 @@ function FormularioInscricao() {
 
           {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
 
-          {/* Botão desativado quando "Segunda inscrição" estiver marcada */}
+          {/* Botão desativado quando "Segunda inscrição" estiver marcada ou não há vagas */}
           <button
             className='botao-inscricao'
             onClick={handleSubmit}
-            disabled={formData.segundaInscricao}  // Desativa o botão se "Segunda inscrição" estiver marcada
+            disabled={formData.segundaInscricao || isCategoriaSemVagas}  // Desativa o botão se "Segunda inscrição" ou sem vagas
           >
             Inscrever-se
           </button>

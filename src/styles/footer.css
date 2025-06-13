@@ -1,11 +1,17 @@
+/* Estilo do footer fixo */
 .footer {
   background-color: rgb(22, 18, 31);  /* Cor de fundo semelhante ao tema */
   color: white;  /* Texto branco */
   text-align: center;  /* Centraliza o texto */
   padding: 10px 0;  /* Espaçamento interno */
-  margin-top: 20px;  /* Distância do conteúdo acima */
   font-size: 14px;  /* Tamanho da fonte */
   font-family: 'Roboto', sans-serif;  /* Fonte coerente com o resto do site */
+  
+  position: fixed;  /* Faz o footer ficar fixo */
+  bottom: 0;  /* Posiciona o footer na parte inferior */
+  left: 0;
+  width: 100%;  /* Faz o footer ocupar toda a largura da tela */
+  z-index: 999;  /* Garante que o footer fique acima de outros conteúdos */
 }
 
 .footer p {

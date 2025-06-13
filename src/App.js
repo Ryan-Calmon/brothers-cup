@@ -10,6 +10,7 @@ import LoginPage from './Components/LoginPage'; // Página de login
 import Contato from './Components/Contato';
 import Footer from './Components/Footer';
 import Local from './Components/Local';
+import Tabelas from './Components/Tabela'; // Importando a página de Tabela
 import './App.css';
 
 function App() {
@@ -68,7 +69,7 @@ function App() {
               </section>
               <section id="contato">
                 <Contato />
-              </section>
+              </section>  
             </div>
           } />
 
@@ -86,9 +87,13 @@ function App() {
               )
             }
           />
+
+          {/* Página de Tabela */}
+          <Route path="/tabelas" element={<Tabelas />} />
         </Routes>
       </main>
-           <Footer />
+
+      <Footer />
     </Router>
   );
 }
