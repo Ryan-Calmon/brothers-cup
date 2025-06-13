@@ -48,6 +48,7 @@ const MenuMobile = () => {
                   <li><a href="#local" onClick={toggleMenu}>Local</a></li>
                   <li><a href="#primeiraetapa"  onClick={toggleMenu}>Galeria</a></li>
                   <li><a href="#contato"  onClick={toggleMenu}>Contato</a></li>
+                  <li><a href="/tabelas"  onClick={toggleMenu}>Tabelas</a></li>
                 </ul>
               </nav>
             </motion.div>

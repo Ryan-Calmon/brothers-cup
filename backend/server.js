@@ -54,6 +54,16 @@ const generateUniqueId = async () => {
 // Rota de POST para salvar inscrição
 app.post('/inscricao', async (req, res) => {
   try {
+    const categoria = req.body.categoria;
+    let limiteVagas = 16;
+    if (categoria === "Escolinha") {
+      limiteVagas = 24;
+    }
+    const totalInscricoes = await Inscricao.countDocuments({ categoria });
+    if (totalInscricoes >= limiteVagas) {
+      return res.status(400).json({ message: 'Não há mais vagas nesta categoria.' });
+    }
+
     // Gera um ID único numérico para organização
     const id = await generateUniqueId();
 
@@ -84,6 +94,27 @@ app.get('/inscricoes', async (req, res) => {
   }
 });
 
+app.get('/vagas/:categoria', async (req, res) => {
+  const { categoria } = req.params;
+
+  let limiteVagas = 16;
+  if (categoria === "Escolinha") {
+    limiteVagas = 24;
+  }
+
+  try {
+    const totalInscricoes = await Inscricao.countDocuments({ categoria });
+    const vagasRestantes = Math.max(0, limiteVagas - totalInscricoes);
+
+    res.json({
+      categoria,
+      vagas: vagasRestantes
+    });
+  } catch (err) {
+    console.error('Erro ao verificar vagas:', err);
+    res.status(500).json({ message: 'Erro ao verificar vagas.' });
+  }
+});
 // Rota DELETE para excluir uma inscrição usando _id (ObjectId)
 app.delete('/inscricao/:id', async (req, res) => {
   const { id } = req.params;
