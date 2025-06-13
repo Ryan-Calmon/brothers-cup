@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import "../styles/tabela.css"
 
 const tabelas = [
-  { nome: "Tabela Escolinha", link: "https://challonge.com/pt_BR/brotherscup_mistoEscolinha/module" },
-  { nome: "Tabela Open", link: "https://seulink2.com" },
-  { nome: "Tabela Masculino Iniciante", link: "https://seulink3.com" },
-  { nome: "Tabela Masculino Intermediário", link: "https://seulink4.com" },
-  { nome: "Tabela Misto Iniciante", link: "https://seulink5.com" },
-  { nome: "Tabela Misto Escolinha", link: "https://seulink6.com" },
-  { nome: "Tabela Misto Intermediário", link: "https://seulink7.com" },
-  { nome: "Tabela Feminino Intermediário", link: "https://seulink8.com" },
+  { nome: "Escolinha", link: "https://challonge.com/pt_BR/brotherscup_escolinha/module" },
+  { nome: "Open", link: "https://challonge.com/pt_BR/brotherscup_open/module" },
+  { nome: "Masculino Iniciante", link: "https://challonge.com/pt_BR/brotherscup_mascIniciante/module" },
+  { nome: "Masculino Intermediário", link: "https://challonge.com/pt_BR/brotherscup_mascInterMed/module" },
+  { nome: "Misto Iniciante", link: "https://challonge.com/pt_BR/brotherscup_mistoInic/module" },
+  { nome: "Misto Escolinha", link: "https://challonge.com/pt_BR/brotherscup_mistoEscolinha/module" },
+  { nome: "Misto Intermediário", link: "https://challonge.com/pt_BR/brotherscup_mistoIntermed/module" },
+  { nome: "Feminino Iniciante", link: "https://challonge.com/pt_BR/brotherscup_femIniciante/module" },
 ];
 
 export default function Tabela() {
