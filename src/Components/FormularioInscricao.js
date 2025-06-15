@@ -22,7 +22,7 @@ function FormularioInscricao() {
 
   useEffect(() => {
     // Use a Public Key real aqui
-    initMercadoPago('APP_USR-3162459888763601-061318-a0c0a9a1e9b3b5ddb809000cf598ead9-2485363043'); // Substitua pela sua Public Key
+    initMercadoPago('APP_USR-ac58a0ca-7852-4ff0-9f03-f07a8c777b85'); // Substitua pela sua Public Key
   }, []);
 
   const checkVagasDisponiveis = async (categoria) => {
