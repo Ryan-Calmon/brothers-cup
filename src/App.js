@@ -10,6 +10,7 @@ import LoginPage from './Components/LoginPage'; // Página de login
 import Contato from './Components/Contato';
 import Footer from './Components/Footer';
 import Local from './Components/Local';
+import Sucesso from './Components/Sucesso';
 import Tabelas from './Components/Tabela'; // Importando a página de Tabela
 import './App.css';
 
@@ -75,7 +76,7 @@ function App() {
 
           {/* Página de login */}
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-
+           <Route path="/sucesso" element={<Sucesso onLogin={handleLogin} />} />
           {/* Página de administração protegida */}
           <Route
             path="/admin"

@@ -10,7 +10,7 @@ import { initMercadoPago } from '@mercadopago/sdk-react'; // Removido Wallet
 function FormularioInscricao() {
   const [vagasRestantes, setVagasRestantes] = useState(null);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
-  // const [preferenceId, setPreferenceId] = useState(null); // Removido preferenceId, pois não será mais usado para renderizar o botão
+   const [formaPagamento, setFormaPagamento] = useState('pix');
 
   useEffect(() => {
     if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
@@ -22,7 +22,7 @@ function FormularioInscricao() {
 
   useEffect(() => {
     // Use a Public Key real aqui
-    initMercadoPago('APP_USR-5fd32d59-21af-40e8-828a-d2b37176cbbe'); // Substitua pela sua Public Key
+    initMercadoPago('APP_USR-3162459888763601-061318-a0c0a9a1e9b3b5ddb809000cf598ead9-2485363043'); // Substitua pela sua Public Key
   }, []);
 
   const checkVagasDisponiveis = async (categoria) => {
@@ -113,8 +113,8 @@ function FormularioInscricao() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: `Inscrição ${formData.categoria} - ${formData.representante}`,
-          unit_price: 250, // Ajuste este valor conforme o preço da inscrição
+          title: `Inscrição ${formData.categoria} - ${formData.representante} - ${formData.parceiro} - ${formData.id}`,
+          unit_price: formaPagamento === 'cartao' ? 2 : 1, // Ajuste este valor conforme o preço da inscrição
           quantity: 1,
           inscricaoData: formData, // <--- ESTA LINHA É CRUCIAL
         } ),
@@ -125,7 +125,7 @@ function FormularioInscricao() {
         
         // Redireciona o usuário para a página de checkout do Mercado Pago
         // O backend agora retorna o init_point diretamente na resposta
-        const initPoint = paymentData.sandbox_init_point; // Use sandbox_init_point para testes
+        const initPoint = paymentData.init_point; // Use sandbox_init_point para testes
         if (initPoint) {
           window.location.href = initPoint;
         } else {
@@ -353,7 +353,19 @@ function FormularioInscricao() {
               )}
             </div>
           </div>
-
+           {/* FORMA DE PAGAMENTO */}
+          <div className='modal-separado'>
+            <p className='titulo-inscricao'>Forma de Pagamento</p>
+            <select
+              className='input'
+              name='formaPagamento'
+              value={formaPagamento}
+              onChange={(e) => setFormaPagamento(e.target.value)}
+            >
+              <option value="pix">PIX </option>
+              <option value="cartao">Cartão de Crédito </option>
+            </select>
+          </div>      
           <div className="modal-separado">
             <div className="checkbox-wrapper">
               <input
