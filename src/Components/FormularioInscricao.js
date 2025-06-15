@@ -39,20 +39,22 @@ function FormularioInscricao() {
   const isCategoriaSemVagas = vagasRestantes === 0;
   const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vagasRestantes > 0;
 
-  const [formData, setFormData] = useState({
-    representante: '',
-    parceiro: '',
-    instagramRepresentante: '',
-    instagramParceiro: '',
-    uniformeRepresentante: '',
-    uniformeParceiro: '',
-    categoria: '',
-    ctRepresentante: '',
-    ctParceiro: '',
-    celular: '',
-    segundaInscricao: false,
-    aceitarTermos: false, // Novo estado para o checkbox
-  });
+ const [formData, setFormData] = useState({
+  representante: '',
+  parceiro: '',
+  instagramRepresentante: '',
+  instagramParceiro: '',
+  uniformeRepresentante: '',
+  uniformeParceiro: '',
+  categoria: '',
+  ctRepresentante: '',
+  ctParceiro: '',
+  celular: '',
+  email: '', // <-- Adicionado aqui
+  segundaInscricao: false,
+  aceitarTermos: false,
+});
+
 
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [error, setError] = useState('');
@@ -65,15 +67,17 @@ function FormularioInscricao() {
 
   const handleSubmit = async () => {
     const camposObrigatorios = [
-      'representante',
-      'parceiro',
-      'instagramRepresentante',
-      'instagramParceiro',
-      'uniformeRepresentante',
-      'uniformeParceiro',
-      'categoria',
-      'aceitarTermos', // Verifica se o checkbox de termos foi marcado
-    ];
+  'representante',
+  'parceiro',
+  'instagramRepresentante',
+  'instagramParceiro',
+  'uniformeRepresentante',
+  'uniformeParceiro',
+  'categoria',
+  'email', // <-- aqui
+  'aceitarTermos',
+];
+
 
     const novosInvalidos = {};
 
@@ -198,6 +202,18 @@ function FormularioInscricao() {
                   className={`input ${camposInvalidos.parceiro ? 'input-invalido' : ''}`}
                 />
               </div>
+              <div className='col-12 col-md-6'>
+  <p className='sobre-inscricao'> E-mail para teste (simulado) </p>
+  <input
+    type="email"
+    name="email"
+    value={formData.email}
+    onChange={handleChange}
+    placeholder="ex: teste@exemplo.com"
+    className={`input ${camposInvalidos.email ? 'input-invalido' : ''}`}
+  />
+</div>
+
             </div>
           </div>
 
