@@ -59,7 +59,7 @@ const paymentService = new Payment(client);
 
 app.post("/create_preference", async (req, res) => {
   try {
-    const { title, unit_price, quantity, inscricaoData } = req.body;
+    const { title, unit_price, quantity, inscricaoData, formaPagamento } = req.body;
     const inscricaoId = await generateUniqueId();
 
     const tempInscricaoData = {
@@ -68,6 +68,26 @@ app.post("/create_preference", async (req, res) => {
       statusPagamento: 'pendente',
     };
 
+    let payment_methods;
+
+if (formaPagamento === 'pix') {
+  payment_methods = {
+    excluded_payment_types: [
+      { id: "credit_card" },
+      { id: "ticket" },
+      { id: "atm" }
+    ]
+  };
+} else if (formaPagamento === 'cartao') {
+  payment_methods = {
+    excluded_payment_types: [
+      { id: "pix" },
+      { id: "ticket" },
+      { id: "atm" }
+    ],
+    installments: 1
+  };
+}
     let preferenceBody = {
       items: [
         {
@@ -86,14 +106,8 @@ app.post("/create_preference", async (req, res) => {
         inscricao: tempInscricaoData
       },
       notification_url: "https://4797-2804-14d-5cb0-11d8-f4be-97c1-5d23-fad5.ngrok-free.app/webhook",
-      payment_methods: {
-    excluded_payment_types: [
-      { id: "ticket" }, // Remove boleto
-      { id: "atm" }     // Remove pagamento em lotérica
-    ],
-    installments: 1     // Só permite pagamento em 1x
+      payment_methods: payment_methods, 
   }
-    };
 
 
    

@@ -117,6 +117,7 @@ function FormularioInscricao() {
           unit_price: formaPagamento === 'cartao' ? 2 : 1, // Ajuste este valor conforme o preço da inscrição
           quantity: 1,
           inscricaoData: formData, // <--- ESTA LINHA É CRUCIAL
+          formaPagamento : formaPagamento,
         } ),
       });
 
