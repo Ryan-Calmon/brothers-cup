@@ -15,7 +15,7 @@ function Sucesso() {
 
   return (
     <div className="sucesso-container">
-      <h1>🎉 Obrigado por se inscrever!</h1>
+      <h1>Obrigado por se inscrever!</h1>
       {inscricaoId ? (
         <h2>O número da sua inscrição é: <span className="destaque">#{inscricaoId}</span></h2>
       ) : (
