@@ -117,6 +117,8 @@ app.post("/create_preference", async (req, res) => {
     res.json({
       id: response.id, // Retorna o ID da preferência para o frontend
       inscricaoId: inscricaoId, // Retorna o ID da inscrição para o frontend (opcional, mas útil)
+      sandbox_init_point: response.sandbox_init_point,
+      inscricaoId: inscricaoId,
     });
   } catch (error) {
       console.error("Erro detalhado ao criar preferência de pagamento:", error);
