@@ -5,38 +5,39 @@ import { IoShirt } from "react-icons/io5";
 import { CiInstagram } from "react-icons/ci";
 import { MdOutlineStadium } from "react-icons/md";
 import "../styles/formularioinscricao.css";
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import { initMercadoPago } from '@mercadopago/sdk-react'; // Removido Wallet
 
 function FormularioInscricao() {
-const [vagasRestantes, setVagasRestantes] = useState(null);
-const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
-const [preferenceId, setPreferenceId] = useState(null);
+  const [vagasRestantes, setVagasRestantes] = useState(null);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+  // const [preferenceId, setPreferenceId] = useState(null); // Removido preferenceId, pois não será mais usado para renderizar o botão
 
-useEffect(() => {
-  if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
-    checkVagasDisponiveis(categoriaSelecionada);
-  } else {
-    setVagasRestantes(null);
-  }
-}, [categoriaSelecionada]);
+  useEffect(() => {
+    if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
+      checkVagasDisponiveis(categoriaSelecionada);
+    } else {
+      setVagasRestantes(null);
+    }
+  }, [categoriaSelecionada]);
 
-useEffect(() => {
-  initMercadoPago('YOUR_MERCADOPAGO_PUBLIC_KEY'); // Substitua pela sua Public Key
-}, []);
+  useEffect(() => {
+    // Use a Public Key real aqui
+    initMercadoPago('APP_USR-5fd32d59-21af-40e8-828a-d2b37176cbbe'); // Substitua pela sua Public Key
+  }, []);
 
-const checkVagasDisponiveis = async (categoria) => {
-  try {
-    const res = await fetch(`http://localhost:5000/vagas/${categoria}`);
-    const data = await res.json();
-    setVagasRestantes(data.vagas);
-  } catch (err) {
-    setVagasRestantes(null);
-    console.error('Erro ao verificar vagas:', err);
-  }
-};
+  const checkVagasDisponiveis = async (categoria) => {
+    try {
+      const res = await fetch(`http://localhost:5000/vagas/${categoria}` );
+      const data = await res.json();
+      setVagasRestantes(data.vagas);
+    } catch (err) {
+      setVagasRestantes(null);
+      console.error('Erro ao verificar vagas:', err);
+    }
+  };
 
-const isCategoriaSemVagas = vagasRestantes === 0;
-const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vagasRestantes > 0;
+  const isCategoriaSemVagas = vagasRestantes === 0;
+  const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vagasRestantes > 0;
 
   const [formData, setFormData] = useState({
     representante: '',
@@ -94,56 +95,55 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
     }
 
     try {
-      const res = await fetch('http://localhost:5000/inscricao', {
+      // Primeiro, verifica as vagas (a rota /inscricao no backend agora só verifica vagas)
+      const vagasRes = await fetch('http://localhost:5000/inscricao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData ), // Envia o formData para a verificação de vagas
       });
 
-      if (res.ok) {
-        alert('Inscrição enviada com sucesso! Agora, prossiga para o pagamento.');
-        // Após salvar a inscrição, criar a preferência de pagamento
-        const paymentRes = await fetch('http://localhost:5000/create_preference', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: `Inscrição - ${formData.categoria}`,
-            unit_price: 250, // Defina o valor da inscrição aqui
-            quantity: 1,
-            insticaoData: formData,
-          }),
-        });
+      if (!vagasRes.ok) {
+        const errorData = await vagasRes.json();
+        setError(errorData.message || 'Erro ao verificar vagas.');
+        return; // Para a execução se não houver vagas
+      }
 
-        if (paymentRes.ok) {
-          const paymentData = await paymentRes.json();
-          setPreferenceId(paymentData.id);
+      // Se houver vagas, prossegue para criar a preferência de pagamento
+      const paymentRes = await fetch('http://localhost:5000/create_preference', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `Inscrição ${formData.categoria} - ${formData.representante}`,
+          unit_price: 250, // Ajuste este valor conforme o preço da inscrição
+          quantity: 1,
+          inscricaoData: formData, // <--- ESTA LINHA É CRUCIAL
+        } ),
+      });
+
+      if (paymentRes.ok) {
+        const paymentData = await paymentRes.json();
+        
+        // Redireciona o usuário para a página de checkout do Mercado Pago
+        // O backend agora retorna o init_point diretamente na resposta
+        const initPoint = paymentData.sandbox_init_point || paymentData.init_point; // Use sandbox_init_point para testes
+        if (initPoint) {
+          window.location.href = initPoint;
         } else {
-          alert('Erro ao gerar preferência de pagamento.');
+          console.error("Erro: init_point não encontrado na resposta do Mercado Pago.", paymentData);
+          alert("Ocorreu um erro ao iniciar o pagamento. Por favor, tente novamente.");
         }
 
-        setFormData({
-          representante: '',
-          celular: '',
-          parceiro: '',
-          instagramRepresentante: '',
-          instagramParceiro: '',
-          uniformeRepresentante: '',
-          uniformeParceiro: '',
-          categoria: '',
-          ctRepresentante: '',
-          ctParceiro: '',
-          segundaInscricao: false,
-          aceitarTermos: false, // Resetar o estado do checkbox
-        });
-        setCamposInvalidos({});
-        setError('');
-        setMessage('');
+        // Não reseta o formulário aqui, pois o usuário será redirecionado
+        // O reset deve acontecer após o pagamento ser concluído (sucesso/falha)
+
       } else {
-        alert('Erro ao enviar inscrição.');
+        const errorData = await paymentRes.json();
+        alert(`Erro ao gerar preferência de pagamento: ${errorData.message || 'Erro desconhecido'}`);
       }
+
     } catch (err) {
       console.error(err);
-      alert('Erro ao conectar com o servidor.');
+      alert('Erro ao conectar com o servidor ou processar a inscrição.');
     }
   };
 
@@ -281,11 +281,16 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
                   onChange={handleChange}
                 >
                   <option>Selecione o tamanho</option>
-                  <option>PP</option>
-                  <option>P</option>
-                  <option>M</option>
-                  <option>G</option>
-                  <option>GG</option>
+                  <option>PP Masculino</option>
+                  <option>P Masculino</option>
+                  <option>M Masculino</option>
+                  <option>G Masculino</option>
+                  <option>GG Masculino</option>
+                  <option>PP Feminino</option>
+                  <option>P Feminino</option>
+                  <option>M Feminino</option>
+                  <option>G Feminino</option>
+                  <option>GG Feminino</option>
                 </select>
               </div>
               <div className='col-12 col-md-6'>
@@ -297,11 +302,16 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
                   onChange={handleChange}
                 >
                   <option>Selecione o tamanho</option>
-                  <option>PP</option>
-                  <option>P</option>
-                  <option>M</option>
-                  <option>G</option>
-                  <option>GG</option>
+                  <option>PP Masculino</option>
+                  <option>P Masculino</option>
+                  <option>M Masculino</option>
+                  <option>G Masculino</option>
+                  <option>GG Masculino</option>
+                  <option>PP Feminino</option>
+                  <option>P Feminino</option>
+                  <option>M Feminino</option>
+                  <option>G Feminino</option>
+                  <option>GG Feminino</option>
                 </select>
               </div>
             </div>
@@ -400,21 +410,14 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
           {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
 
           {/* Botão desativado quando "Segunda inscrição" estiver marcada ou não há vagas */}
-          {!preferenceId && (
-            <button
-              className='botao-inscricao'
-              onClick={handleSubmit}
-              disabled={formData.segundaInscricao || isCategoriaSemVagas}  // Desativa o botão se "Segunda inscrição" ou sem vagas
-            >
-              Inscrever-se
-            </button>
-          )}
+          <button
+            className='botao-inscricao'
+            onClick={handleSubmit}
+            disabled={formData.segundaInscricao || isCategoriaSemVagas}  // Desativa o botão se "Segunda inscrição" ou sem vagas
+          >
+            Inscrever-se
+          </button>
 
-          {preferenceId && (
-            <div className="mercadopago-button-container">
-              <Wallet initialization={{ preferenceId: preferenceId }} customization={{ texts:{ value: 'pay_button' } }} />
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -422,5 +425,3 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
 }
 
 export default FormularioInscricao;
-
-
