@@ -125,7 +125,7 @@ function FormularioInscricao() {
         
         // Redireciona o usuário para a página de checkout do Mercado Pago
         // O backend agora retorna o init_point diretamente na resposta
-        const initPoint = paymentData.sandbox_init_point || paymentData.init_point; // Use sandbox_init_point para testes
+        const initPoint = paymentData.sandbox_init_point; // Use sandbox_init_point para testes
         if (initPoint) {
           window.location.href = initPoint;
         } else {
