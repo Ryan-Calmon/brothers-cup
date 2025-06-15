@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Adicionando o useNavigate
+import { useNavigate } from 'react-router-dom';
 import '../styles/AdminPage.css';
+import * as XLSX from 'xlsx';
 
 function AdminPage() {
   const [inscricoes, setInscricoes] = useState([]);
-  const [editing, setEditing] = useState(null); // Estado para controlar a edição
-  const [search, setSearch] = useState(''); // Estado para controlar a pesquisa
-  const navigate = useNavigate(); // Adicionando o hook de navegação
+  const [editing, setEditing] = useState(null);
+  const [search, setSearch] = useState('');
+  const [mostrarApenasPagos, setMostrarApenasPagos] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Carregar as inscrições do backend na primeira vez
     fetchInscricoes();
   }, []);
 
@@ -21,13 +22,12 @@ function AdminPage() {
   };
 
   const handleDelete = (id) => {
-    // Função para excluir inscrição
     fetch(`http://localhost:5000/inscricao/${id}`, {
       method: 'DELETE',
     })
       .then(() => {
         alert('Inscrição excluída com sucesso!');
-        setInscricoes(inscricoes.filter(item => item._id !== id)); // Filtra pelo _id (ObjectId)
+        setInscricoes(inscricoes.filter(item => item._id !== id));
       })
       .catch(error => {
         console.error('Erro ao excluir inscrição:', error);
@@ -35,7 +35,6 @@ function AdminPage() {
   };
 
   const handleEdit = (inscricao) => {
-    // Iniciar edição com os dados da inscrição
     setEditing(inscricao);
   };
 
@@ -49,8 +48,8 @@ function AdminPage() {
         .then(response => response.json())
         .then(() => {
           alert('Inscrição atualizada com sucesso!');
-          setEditing(null); // Limpar o estado de edição
-          fetchInscricoes(); // Atualiza as inscrições
+          setEditing(null);
+          fetchInscricoes();
         })
         .catch(error => console.error('Erro ao editar inscrição:', error));
     }
@@ -62,33 +61,45 @@ function AdminPage() {
   };
 
   const handleCloseEdit = () => {
-    setEditing(null); // Fecha o modal de edição
+    setEditing(null);
   };
 
-  // Função para filtrar inscrições
-  const filteredInscricoes = inscricoes.filter(inscricao => 
-    inscricao.representante.toLowerCase().includes(search.toLowerCase()) || 
-    inscricao.parceiro.toLowerCase().includes(search.toLowerCase()) ||
-    inscricao.categoria.toLowerCase().includes(search.toLowerCase()) || 
-    inscricao.id.toString().includes(search) 
-  );
+  const filteredInscricoes = inscricoes
+    .filter(inscricao =>
+      (inscricao.representante || '').toLowerCase().includes(search.toLowerCase()) ||
+      (inscricao.parceiro || '').toLowerCase().includes(search.toLowerCase()) ||
+      (inscricao.categoria || '').toLowerCase().includes(search.toLowerCase()) ||
+      inscricao.id?.toString().includes(search)
+    )
+    .filter(inscricao => !mostrarApenasPagos || inscricao.statusPagamento === 'aprovado');
 
-  // Função de logout, que redireciona para a página de login
   const handleLogout = () => {
-    // Redireciona para a página de login
     navigate('/login');
   };
 
-  // Função para atualizar as inscrições (botão de refresh)
   const handleRefresh = () => {
-    fetchInscricoes(); // Faz uma nova requisição para atualizar os dados
+    fetchInscricoes();
+  };
+
+  const exportarExcel = () => {
+    const pagos = inscricoes.filter(i => i.statusPagamento === 'aprovado');
+    const dados = pagos.map(i => ({
+      ID: i.id,
+      Representante: i.representante,
+      Parceiro: i.parceiro,
+      Categoria: i.categoria,
+      Celular: i.celular
+    }));
+    const ws = XLSX.utils.json_to_sheet(dados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pagos');
+    XLSX.writeFile(wb, 'inscricoes_pagas.xlsx');
   };
 
   return (
     <div className="admin-container">
       <h1 className="admin-title">Administração - Inscrições</h1>
 
-      {/* Campo de pesquisa */}
       <input
         type="text"
         className="search-input"
@@ -96,10 +107,24 @@ function AdminPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-
-      {/* Botão de Refresh */}
+      <div className='botoes-admin'>
+        <div className='row'>
+          <div className='col-4'>
       <button className="refresh-button" onClick={handleRefresh}>Atualizar Dados</button>
-
+    </div>
+    <div className='col-4'>
+      <button
+        className="filter-button"
+        onClick={() => setMostrarApenasPagos(prev => !prev)}
+      >
+        {mostrarApenasPagos ? 'Mostrar Todos' : 'Mostrar Apenas Pagos'}
+      </button>
+</div>
+<div className='col-4'>
+      <button className="export-button" onClick={exportarExcel}>Exportar Pagos</button>
+      </div>
+      </div> 
+    </div>
       <div className="inscricoes-list">
         <table className="inscricoes-table">
           <thead>
@@ -113,117 +138,63 @@ function AdminPage() {
               <th>Ct Representante</th>
               <th>Ct Parceiro</th>
               <th>Categoria</th>
+              <th>Pago</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
-            {filteredInscricoes.map(inscricao => (
-              <tr key={inscricao._id}> {/* Usando _id como chave */}
-                <td>{inscricao.id}</td> {/* Exibe o ID gerado manualmente */}
-                <td>{inscricao.representante}</td>
-                <td>{inscricao.celular}</td>
-                <td>{inscricao.parceiro}</td>
-                <td>{inscricao.instagramRepresentante}</td>
-                <td>{inscricao.instagramParceiro}</td>
-                <td>{inscricao.ctRepresentante}</td>
-                <td>{inscricao.ctParceiro}</td>
-                <td>{inscricao.categoria}</td>
-                <td>
-                  <button className="edit-button" onClick={() => handleEdit(inscricao)}>
-                    Editar
-                  </button>
-                  <button
-                    className="delete-button"
-                    onClick={() => handleDelete(inscricao._id)} // Usando _id (ObjectId)
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+              {filteredInscricoes.map(inscricao => (
+             <tr key={inscricao._id} className={inscricao.statusPagamento === 'aprovado' ? 'pago' : ''}>
+              <td>{inscricao.id}</td>
+              <td>{inscricao.representante}</td>
+              <td>{inscricao.celular}</td>
+              <td>{inscricao.parceiro}</td>
+              <td>{inscricao.instagramRepresentante}</td>
+              <td>{inscricao.instagramParceiro}</td>
+              <td>{inscricao.ctRepresentante}</td>
+              <td>{inscricao.ctParceiro}</td>
+              <td>{inscricao.categoria}</td>
+              <td>
+                {inscricao.statusPagamento === 'aprovado' ? '✅' : '❌'}
+              </td>
+              <td>
+                <button className="edit-button" onClick={() => handleEdit(inscricao)}>Editar</button>
+                <button className="delete-button" onClick={() => handleDelete(inscricao._id)}>Excluir</button>
+            </td>
+          </tr>
+         ))}
+</tbody>
         </table>
       </div>
 
       {editing && (
         <div className="edit-form">
-          {/* Botão de fechar (X) */}
           <button className="close-button" onClick={handleCloseEdit}>X</button>
-
           <h2>Editar Inscrição</h2>
 
-          {/* ID da inscrição (somente leitura) */}
           <label htmlFor="id">ID</label>
-          <input
-            type="text"
-            name="id"
-            value={editing.id}
-            onChange={handleChange}
-            placeholder="ID da Inscrição"
-            disabled
-          />
+          <input type="text" name="id" value={editing.id} onChange={handleChange} disabled />
 
-          {/* Campos editáveis */}
           <label htmlFor="representante">Nome do Representante</label>
-          <input
-            type="text"
-            name="representante"
-            value={editing.representante}
-            onChange={handleChange}
-            placeholder="Nome do Representante"
-          />
+          <input type="text" name="representante" value={editing.representante} onChange={handleChange} />
 
           <label htmlFor="parceiro">Nome do Parceiro</label>
-          <input
-            type="text"
-            name="parceiro"
-            value={editing.parceiro}
-            onChange={handleChange}
-            placeholder="Nome do Parceiro"
-          />
+          <input type="text" name="parceiro" value={editing.parceiro} onChange={handleChange} />
 
           <label htmlFor="instagramRepresentante">Instagram Representante</label>
-          <input
-            type="text"
-            name="instagramRepresentante"
-            value={editing.instagramRepresentante}
-            onChange={handleChange}
-            placeholder="Instagram Representante"
-          />
+          <input type="text" name="instagramRepresentante" value={editing.instagramRepresentante} onChange={handleChange} />
 
           <label htmlFor="instagramParceiro">Instagram Parceiro</label>
-          <input
-            type="text"
-            name="instagramParceiro"
-            value={editing.instagramParceiro}
-            onChange={handleChange}
-            placeholder="Instagram Parceiro"
-          />
+          <input type="text" name="instagramParceiro" value={editing.instagramParceiro} onChange={handleChange} />
 
           <label htmlFor="ctRepresentante">CT do Representante</label>
-          <input
-            type="text"
-            name="ctRepresentante"
-            value={editing.ctRepresentante}
-            onChange={handleChange}
-            placeholder="CT do Representante"
-          />
+          <input type="text" name="ctRepresentante" value={editing.ctRepresentante} onChange={handleChange} />
 
           <label htmlFor="ctParceiro">CT do Parceiro</label>
-          <input
-            type="text"
-            name="ctParceiro"
-            value={editing.ctParceiro}
-            onChange={handleChange}
-            placeholder="CT do Parceiro"
-          />
+          <input type="text" name="ctParceiro" value={editing.ctParceiro} onChange={handleChange} />
 
           <label htmlFor="categoria">Categoria</label>
-          <select
-            name="categoria"
-            value={editing.categoria}
-            onChange={handleChange}
-          >
+          <select name="categoria" value={editing.categoria} onChange={handleChange}>
             <option>Categoria</option>
             <option>Open</option>
             <option>Misto Iniciante</option>

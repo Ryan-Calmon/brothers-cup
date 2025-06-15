@@ -6,7 +6,12 @@ body, html {
   width: 100%;
   overflow-x: hidden; /* Impede o scroll horizontal */
 }
-
+.botoes-admin{
+  width: 700px;
+}
+.pago {
+  background-color: #e6ffe6; /* verde claro */
+}
 /* Ajustes no container da página de admin */
 /* Ajustes no container da página de admin */
 .admin-container {
