@@ -59,7 +59,7 @@ const paymentService = new Payment(client);
 
 app.post("/create_preference", async (req, res) => {
   try {
-    const { title, unit_price, quantity, inscricaoData } = req.body;
+    const { title, unit_price, quantity, inscricaoData, formaPagamento } = req.body;
     const inscricaoId = await generateUniqueId();
 
     const tempInscricaoData = {
@@ -67,6 +67,27 @@ app.post("/create_preference", async (req, res) => {
       id: inscricaoId,
       statusPagamento: 'pendente',
     };
+
+    let payment_methods;
+
+    if (formaPagamento === 'pix') {
+      payment_methods = {
+        excluded_payment_types: [
+          { id: "credit_card" },
+          { id: "ticket" },
+          { id: "atm" },
+        ],
+      };
+    } else if (formaPagamento === 'cartao') {
+      payment_methods = {
+        excluded_payment_types: [
+          { id: "pix" },
+          { id: "ticket" },
+          { id: "atm" },
+        ],
+        installments: 1,
+      };
+    }
 
     let preferenceBody = {
       items: [
@@ -77,7 +98,7 @@ app.post("/create_preference", async (req, res) => {
         },
       ],
       back_urls: {
-        success: "https://brothers-cup.vercel.app/sucesso",
+        success: "https://brothers-cup.vercel.app/sucesso?inscricaoId=${inscricaoId}",
         failure: "https://brothers-cup.vercel.app/falhou",
         pending: "https://brothers-cup.vercel.app/falhou"
       },
@@ -85,17 +106,9 @@ app.post("/create_preference", async (req, res) => {
       metadata: {
         inscricao: tempInscricaoData
       },
-      notification_url: "https://4797-2804-14d-5cb0-11d8-f4be-97c1-5d23-fad5.ngrok-free.app/webhook"
+      notification_url: "https://brotherscup.com.br/webhook",
+      payment_methods: payment_methods
     };
-
-    const isSandbox = true; // Troque por process.env.IS_SANDBOX === 'true' se preferir usar .env
-
-    if (isSandbox) {
-      preferenceBody.payer = {
-        email: "comprador_teste@testuser.com",
-        name: inscricaoData.representante || "Comprador Teste"
-      };
-    }
 
     const response = await preferenceService.create({ body: preferenceBody });
 
@@ -107,7 +120,6 @@ app.post("/create_preference", async (req, res) => {
 
     res.json({
       id: response.id,
-      sandbox_init_point: response.sandbox_init_point,
       init_point: response.init_point,
       inscricaoId: inscricaoId
     });
@@ -115,118 +127,4 @@ app.post("/create_preference", async (req, res) => {
     console.error("Erro detalhado ao criar preferência de pagamento:", error);
     res.status(500).json({ message: "Erro ao criar preferência de pagamento." });
   }
-});
-
-app.post('/inscricao', async (req, res) => {
-  try {
-    const categoria = req.body.categoria;
-    let limiteVagas = 16;
-    if (categoria === "Escolinha") limiteVagas = 24;
-
-    const totalInscricoes = await Inscricao.countDocuments({ categoria, statusPagamento: 'aprovado' });
-    if (totalInscricoes >= limiteVagas) {
-      return res.status(400).json({ message: 'Não há mais vagas nesta categoria.' });
-    }
-    res.status(200).json({ message: 'Vagas disponíveis. Prossiga para o pagamento.' });
-  } catch (err) {
-    console.error('Erro ao verificar vagas para inscrição:', err);
-    res.status(500).json({ message: 'Erro ao verificar vagas para inscrição.' });
-  }
-});
-
-app.post("/webhook", async (req, res) => {
-  try {
-    const payment_id = req.query["data.id"] || (req.body.data && req.body.data.id);
-    const type = req.query.type || req.body.type;
-
-    if (type === "payment") {
-      const paymentInfo = await paymentService.get({ id: payment_id });
-      console.log("Webhook - Informações do Pagamento:", paymentInfo.body);
-
-      const paymentStatus = paymentInfo.body.status;
-      const preferenceIdFromPayment = paymentInfo.body.external_reference;
-      const inscricaoDataFromMetadata = paymentInfo.body.metadata ? paymentInfo.body.metadata.inscricao : null;
-
-      if (paymentStatus === 'approved') {
-        let inscricaoExistente = await Inscricao.findOne({ preferenceId: preferenceIdFromPayment });
-
-        if (!inscricaoExistente && inscricaoDataFromMetadata) {
-          inscricaoExistente = new Inscricao({
-            ...inscricaoDataFromMetadata,
-            statusPagamento: 'aprovado',
-            preferenceId: preferenceIdFromPayment,
-            paymentId: payment_id,
-          });
-          await inscricaoExistente.save();
-          console.log("Inscrição salva via webhook com sucesso!");
-        } else if (inscricaoExistente) {
-          inscricaoExistente.statusPagamento = 'aprovado';
-          inscricaoExistente.paymentId = payment_id;
-          await inscricaoExistente.save();
-          console.log("Status da inscrição atualizado para aprovado via webhook!");
-        }
-      } else {
-        console.log(`Pagamento ${payment_id} com status: ${paymentStatus}. Inscrição não aprovada.`);
-      }
-    }
-    res.status(200).send("OK");
-  } catch (error) {
-    console.error("Erro ao processar webhook:", error);
-    res.status(500).json({ message: "Erro ao processar webhook." });
-  }
-});
-
-app.get('/inscricoes', async (req, res) => {
-  try {
-    const todas = await Inscricao.find();
-    res.json(todas);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao buscar inscrições.' });
-  }
-});
-
-app.get('/vagas/:categoria', async (req, res) => {
-  const { categoria } = req.params;
-  let limiteVagas = categoria === "Escolinha" ? 24 : 16;
-  try {
-    const totalInscricoes = await Inscricao.countDocuments({ categoria });
-    const vagasRestantes = Math.max(0, limiteVagas - totalInscricoes);
-    res.json({ categoria, vagas: vagasRestantes });
-  } catch (err) {
-    console.error('Erro ao verificar vagas:', err);
-    res.status(500).json({ message: 'Erro ao verificar vagas.' });
-  }
-});
-
-app.delete('/inscricao/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const deletedInscricao = await Inscricao.findByIdAndDelete(id);
-    if (!deletedInscricao) {
-      return res.status(404).json({ message: 'Inscrição não encontrada' });
-    }
-    res.status(200).json({ message: 'Inscrição excluída com sucesso!' });
-  } catch (err) {
-    console.error('Erro ao excluir inscrição:', err);
-    res.status(500).json({ message: 'Erro ao excluir inscrição.' });
-  }
-});
-
-app.put('/inscricao/:id', async (req, res) => {
-  const { id } = req.params;
-  const updatedData = req.body;
-  try {
-    const updatedInscricao = await Inscricao.findByIdAndUpdate(id, updatedData, { new: true });
-    if (!updatedInscricao) {
-      return res.status(404).json({ message: 'Inscrição não encontrada' });
-    }
-    res.status(200).json(updatedInscricao);
-  } catch (err) {
-    console.error('Erro ao editar inscrição:', err);
-    res.status(500).json({ message: 'Erro ao editar inscrição.' });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
 });
