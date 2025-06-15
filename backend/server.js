@@ -102,9 +102,11 @@ app.post("/create_preference", async (req, res) => {
       // Durante o desenvolvimento, use ngrok ou similar
       notification_url: "https://4797-2804-14d-5cb0-11d8-f4be-97c1-5d23-fad5.ngrok-free.app/webhook", // Substitua por sua URL de webhook real
     };
+    console.log("Corpo da Preferência enviado ao Mercado Pago:", JSON.stringify(preferenceBody, null, 2 ));
 
     const response = await preferenceService.create({ body: preferenceBody });
 
+    console.log("Resposta completa do Mercado Pago:", JSON.stringify(response, null, 2));
     // Salvar a inscrição com status pendente e o preferenceId
     const novaInscricao = new Inscricao({
       ...tempInscricaoData,
@@ -117,7 +119,7 @@ app.post("/create_preference", async (req, res) => {
       inscricaoId: inscricaoId, // Retorna o ID da inscrição para o frontend (opcional, mas útil)
     });
   } catch (error) {
-    console.error("Erro ao criar preferência de pagamento:", error);
+      console.error("Erro detalhado ao criar preferência de pagamento:", error);
     res.status(500).json({ message: "Erro ao criar preferência de pagamento." });
   }
 });
