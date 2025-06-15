@@ -110,12 +110,12 @@ app.post("/create_preference", async (req, res) => {
     // Salvar a inscrição com status pendente e o preferenceId
     const novaInscricao = new Inscricao({
       ...tempInscricaoData,
-      preferenceId: response.body.id,
+      preferenceId: response.id,
     });
     await novaInscricao.save();
 
     res.json({
-      id: response.body.id, // Retorna o ID da preferência para o frontend
+      id: response.id, // Retorna o ID da preferência para o frontend
       inscricaoId: inscricaoId, // Retorna o ID da inscrição para o frontend (opcional, mas útil)
     });
   } catch (error) {
