@@ -5,10 +5,12 @@ import { IoShirt } from "react-icons/io5";
 import { CiInstagram } from "react-icons/ci";
 import { MdOutlineStadium } from "react-icons/md";
 import "../styles/formularioinscricao.css";
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 
 function FormularioInscricao() {
 const [vagasRestantes, setVagasRestantes] = useState(null);
 const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+const [preferenceId, setPreferenceId] = useState(null);
 
 useEffect(() => {
   if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
@@ -17,6 +19,10 @@ useEffect(() => {
     setVagasRestantes(null);
   }
 }, [categoriaSelecionada]);
+
+useEffect(() => {
+  initMercadoPago('YOUR_MERCADOPAGO_PUBLIC_KEY'); // Substitua pela sua Public Key
+}, []);
 
 const checkVagasDisponiveis = async (categoria) => {
   try {
@@ -95,7 +101,26 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
       });
 
       if (res.ok) {
-        alert('Inscrição enviada com sucesso!');
+        alert('Inscrição enviada com sucesso! Agora, prossiga para o pagamento.');
+        // Após salvar a inscrição, criar a preferência de pagamento
+        const paymentRes = await fetch('http://localhost:5000/create_preference', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `Inscrição - ${formData.categoria}`,
+            unit_price: 250, // Defina o valor da inscrição aqui
+            quantity: 1,
+            insticaoData: formData,
+          }),
+        });
+
+        if (paymentRes.ok) {
+          const paymentData = await paymentRes.json();
+          setPreferenceId(paymentData.id);
+        } else {
+          alert('Erro ao gerar preferência de pagamento.');
+        }
+
         setFormData({
           representante: '',
           celular: '',
@@ -375,13 +400,21 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
           {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
 
           {/* Botão desativado quando "Segunda inscrição" estiver marcada ou não há vagas */}
-          <button
-            className='botao-inscricao'
-            onClick={handleSubmit}
-            disabled={formData.segundaInscricao || isCategoriaSemVagas}  // Desativa o botão se "Segunda inscrição" ou sem vagas
-          >
-            Inscrever-se
-          </button>
+          {!preferenceId && (
+            <button
+              className='botao-inscricao'
+              onClick={handleSubmit}
+              disabled={formData.segundaInscricao || isCategoriaSemVagas}  // Desativa o botão se "Segunda inscrição" ou sem vagas
+            >
+              Inscrever-se
+            </button>
+          )}
+
+          {preferenceId && (
+            <div className="mercadopago-button-container">
+              <Wallet initialization={{ preferenceId: preferenceId }} customization={{ texts:{ value: 'pay_button' } }} />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -389,3 +422,5 @@ const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vaga
 }
 
 export default FormularioInscricao;
+
+
