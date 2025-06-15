@@ -98,6 +98,10 @@ app.post("/create_preference", async (req, res) => {
       metadata: {
         inscricao: tempInscricaoData,
       },
+        payer: {
+    email: inscricaoData.email || "test_user@teste.com",
+    name: inscricaoData.representante || "Comprador Teste",
+  },
       // É crucial que esta URL seja acessível publicamente para o Mercado Pago
       // Durante o desenvolvimento, use ngrok ou similar
       notification_url: "https://4797-2804-14d-5cb0-11d8-f4be-97c1-5d23-fad5.ngrok-free.app/webhook", // Substitua por sua URL de webhook real
@@ -118,7 +122,7 @@ app.post("/create_preference", async (req, res) => {
       id: response.id, // Retorna o ID da preferência para o frontend
       inscricaoId: inscricaoId, // Retorna o ID da inscrição para o frontend (opcional, mas útil)
       sandbox_init_point: response.sandbox_init_point,
-      inscricaoId: inscricaoId,
+      init_point: response.init_point,
     });
   } catch (error) {
       console.error("Erro detalhado ao criar preferência de pagamento:", error);
