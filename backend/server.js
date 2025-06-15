@@ -105,7 +105,7 @@ if (formaPagamento === 'pix') {
       metadata: {
         inscricao: tempInscricaoData
       },
-      notification_url: "https://4797-2804-14d-5cb0-11d8-f4be-97c1-5d23-fad5.ngrok-free.app/webhook",
+      notification_url: "https://a4f7-2804-14d-5cb0-11d8-f4be-97c1-5d23-fad5.ngrok-free.app/webhook",
       payment_methods: payment_methods, 
   }
 
@@ -149,7 +149,10 @@ app.post('/inscricao', async (req, res) => {
   }
 });
 
-app.post("/webhook", async (req, res) => {
+app.all("/webhook", async (req, res) => {
+  if (req.method !== 'POST') {
+    return res.status(405).send("Método não permitido");
+  }
   try {
     const payment_id = req.query["data.id"] || (req.body.data && req.body.data.id);
     const type = req.query.type || req.body.type;
