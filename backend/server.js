@@ -1,23 +1,65 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { MercadoPagoConfig, Preference, Payment } = require('mercadopago');
+const crypto = require('crypto');
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-const MONGO_URI = 'mongodb+srv://ryancalmon05:M8v5Sy9lwhP5EsZD@cluster0.uk4qeos.mongodb.net/brotherscup?retryWrites=true&w=majority';
-
-app.use(cors());
-app.use(express.json());
-
-mongoose.connect(MONGO_URI, {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-}).then(() => console.log('✅ Conectado ao MongoDB Atlas'))
-  .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
+})
+.then(() => console.log('✅ Conectado ao MongoDB Atlas'))
+.catch(err => console.error('Erro ao conectar ao MongoDB Atlas:', err));
+
+app.use(cors());
+
+app.use((req, res, next) => {
+  if (req.originalUrl === '/webhook') {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
+
+app.use('/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
+  const signature = req.headers['x-signature'];
+  const webhookId = req.headers['x-id'];
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+
+  if (!signature || !webhookId || !secret) {
+    console.warn('Webhook: Cabeçalhos de assinatura ou segredo não encontrados.');
+    return res.status(400).send('Bad Request: Missing signature headers or secret.');
+  }
+
+  const [algorithm, hash] = signature.split('=');
+  if (algorithm !== 'sha256') {
+    console.warn('Webhook: Algoritmo de assinatura não suportado.');
+    return res.status(400).send('Bad Request: Unsupported signature algorithm.');
+  }
+
+  const payload = `${webhookId}${req.body.toString()}`;
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(payload);
+  const expectedHash = hmac.digest('hex');
+
+  if (expectedHash !== hash) {
+    console.warn('Webhook: Assinatura inválida.');
+    return res.status(401).send('Unauthorized: Invalid signature.');
+  }
+
+  try {
+    req.body = JSON.parse(req.body.toString());
+  } catch (e) {
+    console.error('Webhook: Erro ao parsear corpo JSON:', e);
+    return res.status(400).send('Bad Request: Invalid JSON body.');
+  }
+
+  next();
+});
 
 const inscricaoSchema = new mongoose.Schema({
   id: { type: Number, required: true, unique: true },
@@ -57,7 +99,23 @@ const client = new MercadoPagoConfig({
 const preferenceService = new Preference(client);
 const paymentService = new Payment(client);
 
-app.post("/create_preference", async (req, res) => {
+app.get('/vagas/:categoria', async (req, res) => {
+  try {
+    const { categoria } = req.params;
+    const totalVagas = 10;
+    const inscricoesConfirmadas = await Inscricao.countDocuments({
+      categoria: categoria,
+      statusPagamento: 'aprovado'
+    });
+    const vagasRestantes = totalVagas - inscricoesConfirmadas;
+    res.json({ vagas: vagasRestantes > 0 ? vagasRestantes : 0 });
+  } catch (error) {
+    console.error('Erro ao verificar vagas:', error);
+    res.status(500).json({ message: 'Erro interno do servidor ao verificar vagas.' });
+  }
+});
+
+app.post('/create_preference', async (req, res) => {
   try {
     const { title, unit_price, quantity, inscricaoData, formaPagamento } = req.body;
     const inscricaoId = await generateUniqueId();
@@ -70,24 +128,25 @@ app.post("/create_preference", async (req, res) => {
 
     let payment_methods;
 
-if (formaPagamento === 'pix') {
-  payment_methods = {
-    excluded_payment_types: [
-      { id: "credit_card" },
-      { id: "ticket" },
-      { id: "atm" }
-    ]
-  };
-} else if (formaPagamento === 'cartao') {
-  payment_methods = {
-    excluded_payment_types: [
-      { id: "pix" },
-      { id: "ticket" },
-      { id: "atm" }
-    ],
-    installments: 1
-  };
-}
+    if (formaPagamento === 'pix') {
+      payment_methods = {
+        excluded_payment_types: [
+          { id: 'credit_card' },
+          { id: 'ticket' },
+          { id: 'atm' },
+        ],
+      };
+    } else if (formaPagamento === 'cartao') {
+      payment_methods = {
+        excluded_payment_types: [
+          { id: 'pix' },
+          { id: 'ticket' },
+          { id: 'atm' },
+        ],
+        installments: 1,
+      };
+    }
+
     let preferenceBody = {
       items: [
         {
@@ -97,22 +156,23 @@ if (formaPagamento === 'pix') {
         },
       ],
       back_urls: {
-        success: "https://brothers-cup.vercel.app/sucesso?inscricaoId=${inscricaoId}",
-        failure: "https://brothers-cup.vercel.app/falhou",
-        pending: "https://brothers-cup.vercel.app/falhou"
+        success: process.env.FRONTEND_URL + '/sucesso?inscricaoId=' + inscricaoId,
+        failure: process.env.FRONTEND_URL + '/falhou',
+        pending: process.env.FRONTEND_URL + '/falhou',
       },
-      auto_return: "all",
+      auto_return: 'all',
       metadata: {
         inscricao: tempInscricaoData
       },
-      notification_url: "https://a4f7-2804-14d-5cb0-11d8-f4be-97c1-5d23-fad5.ngrok-free.app/webhook",
-      payment_methods: payment_methods, 
-  }
+      notification_url: process.env.BACKEND_URL + '/webhook',
+      payment_methods: payment_methods
+    };
 
-
-   
+    console.log('Corpo da Preferência enviado ao Mercado Pago:', JSON.stringify(preferenceBody, null, 2));
 
     const response = await preferenceService.create({ body: preferenceBody });
+
+    console.log('Resposta completa do Mercado Pago:', JSON.stringify(response, null, 2));
 
     const novaInscricao = new Inscricao({
       ...tempInscricaoData,
@@ -122,126 +182,82 @@ if (formaPagamento === 'pix') {
 
     res.json({
       id: response.id,
-      sandbox_init_point: response.sandbox_init_point,
       init_point: response.init_point,
+      sandbox_init_point: response.sandbox_init_point,
       inscricaoId: inscricaoId
     });
   } catch (error) {
-    console.error("Erro detalhado ao criar preferência de pagamento:", error);
-    res.status(500).json({ message: "Erro ao criar preferência de pagamento." });
+    console.error('Erro detalhado ao criar preferência de pagamento:', error);
+    res.status(500).json({ message: 'Erro ao criar preferência de pagamento.' });
+  }
+});
+
+app.post('/webhook', async (req, res) => {
+  try {
+    const { type, data } = req.body;
+
+    if (type === 'payment') {
+      const paymentId = data.id;
+      const payment = await paymentService.get({ id: paymentId });
+
+      if (payment.status === 'approved') {
+        const preferenceId = payment.external_reference || (payment.metadata ? payment.metadata.inscricao.preferenceId : null);
+        const inscricaoDataFromMetadata = payment.metadata ? payment.metadata.inscricao : null;
+
+        if (inscricaoDataFromMetadata) {
+          let inscricao;
+          if (preferenceId) {
+            inscricao = await Inscricao.findOne({ preferenceId: preferenceId });
+          } else if (inscricaoDataFromMetadata.id) {
+            inscricao = await Inscricao.findOne({ id: inscricaoDataFromMetadata.id });
+          }
+
+          if (!inscricao) {
+            inscricao = new Inscricao({
+              ...inscricaoDataFromMetadata,
+              statusPagamento: 'aprovado',
+              preferenceId: preferenceId || inscricaoDataFromMetadata.preferenceId,
+              paymentId: paymentId,
+            });
+            await inscricao.save();
+            console.log('Inscrição salva no banco de dados após pagamento aprovado:', inscricao);
+          } else {
+            inscricao.statusPagamento = 'aprovado';
+            inscricao.paymentId = paymentId;
+            await inscricao.save();
+            console.log('Status da inscrição atualizado para aprovado:', inscricao);
+          }
+        } else {
+          console.warn('Webhook recebido, pagamento aprovado, mas metadata de inscrição não encontrado.');
+        }
+      }
+    }
+
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('Erro no webhook do Mercado Pago:', error);
+    res.status(500).send('Erro interno do servidor no webhook.');
   }
 });
 
 app.post('/inscricao', async (req, res) => {
   try {
-    const categoria = req.body.categoria;
-    let limiteVagas = 16;
-    if (categoria === "Escolinha") limiteVagas = 24;
+    const { categoria } = req.body;
+    const totalVagas = 10;
+    const inscricoesConfirmadas = await Inscricao.countDocuments({
+      categoria: categoria,
+      statusPagamento: 'aprovado'
+    });
+    const vagasRestantes = totalVagas - inscricoesConfirmadas;
 
-    const totalInscricoes = await Inscricao.countDocuments({ categoria, statusPagamento: 'aprovado' });
-    if (totalInscricoes >= limiteVagas) {
-      return res.status(400).json({ message: 'Não há mais vagas nesta categoria.' });
+    if (vagasRestantes <= 0) {
+      return res.status(400).json({ message: 'Não há vagas disponíveis para esta categoria.' });
     }
+
     res.status(200).json({ message: 'Vagas disponíveis. Prossiga para o pagamento.' });
-  } catch (err) {
-    console.error('Erro ao verificar vagas para inscrição:', err);
-    res.status(500).json({ message: 'Erro ao verificar vagas para inscrição.' });
-  }
-});
-
-app.all("/webhook", async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).send("Método não permitido");
-  }
-  try {
-    const payment_id = req.query["data.id"] || (req.body.data && req.body.data.id);
-    const type = req.query.type || req.body.type;
-
-    if (type === "payment") {
-      const paymentInfo = await paymentService.get({ id: payment_id });
-      console.log("Webhook - Informações do Pagamento:", paymentInfo.body);
-
-      const paymentStatus = paymentInfo.body.status;
-      const preferenceIdFromPayment = paymentInfo.body.external_reference;
-      const inscricaoDataFromMetadata = paymentInfo.body.metadata ? paymentInfo.body.metadata.inscricao : null;
-
-      if (paymentStatus === 'approved') {
-        let inscricaoExistente = await Inscricao.findOne({ preferenceId: preferenceIdFromPayment });
-
-        if (!inscricaoExistente && inscricaoDataFromMetadata) {
-          inscricaoExistente = new Inscricao({
-            ...inscricaoDataFromMetadata,
-            statusPagamento: 'aprovado',
-            preferenceId: preferenceIdFromPayment,
-            paymentId: payment_id,
-          });
-          await inscricaoExistente.save();
-          console.log("Inscrição salva via webhook com sucesso!");
-        } else if (inscricaoExistente) {
-          inscricaoExistente.statusPagamento = 'aprovado';
-          inscricaoExistente.paymentId = payment_id;
-          await inscricaoExistente.save();
-          console.log("Status da inscrição atualizado para aprovado via webhook!");
-        }
-      } else {
-        console.log(`Pagamento ${payment_id} com status: ${paymentStatus}. Inscrição não aprovada.`);
-      }
-    }
-    res.status(200).send("OK");
   } catch (error) {
-    console.error("Erro ao processar webhook:", error);
-    res.status(500).json({ message: "Erro ao processar webhook." });
-  }
-});
-
-app.get('/inscricoes', async (req, res) => {
-  try {
-    const todas = await Inscricao.find();
-    res.json(todas);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao buscar inscrições.' });
-  }
-});
-
-app.get('/vagas/:categoria', async (req, res) => {
-  const { categoria } = req.params;
-  let limiteVagas = categoria === "Escolinha" ? 24 : 16;
-  try {
-    const totalInscricoes = await Inscricao.countDocuments({ categoria });
-    const vagasRestantes = Math.max(0, limiteVagas - totalInscricoes);
-    res.json({ categoria, vagas: vagasRestantes });
-  } catch (err) {
-    console.error('Erro ao verificar vagas:', err);
-    res.status(500).json({ message: 'Erro ao verificar vagas.' });
-  }
-});
-
-app.delete('/inscricao/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const deletedInscricao = await Inscricao.findByIdAndDelete(id);
-    if (!deletedInscricao) {
-      return res.status(404).json({ message: 'Inscrição não encontrada' });
-    }
-    res.status(200).json({ message: 'Inscrição excluída com sucesso!' });
-  } catch (err) {
-    console.error('Erro ao excluir inscrição:', err);
-    res.status(500).json({ message: 'Erro ao excluir inscrição.' });
-  }
-});
-
-app.put('/inscricao/:id', async (req, res) => {
-  const { id } = req.params;
-  const updatedData = req.body;
-  try {
-    const updatedInscricao = await Inscricao.findByIdAndUpdate(id, updatedData, { new: true });
-    if (!updatedInscricao) {
-      return res.status(404).json({ message: 'Inscrição não encontrada' });
-    }
-    res.status(200).json(updatedInscricao);
-  } catch (err) {
-    console.error('Erro ao editar inscrição:', err);
-    res.status(500).json({ message: 'Erro ao editar inscrição.' });
+    console.error('Erro ao verificar inscrição:', error);
+    res.status(500).json({ message: 'Erro interno do servidor ao verificar inscrição.' });
   }
 });
 
