@@ -350,7 +350,7 @@ function AdminPage() {
                       </button>
                       <button 
                         className="delete-button" 
-                        onClick={() => handleDelete(inscricao.id)}
+                        onClick={() => handleDelete(inscricao.id, inscricao.categoria)}
                         title="Excluir inscrição"
                       >
                         🗑️
