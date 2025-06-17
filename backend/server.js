@@ -7,10 +7,10 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config(); // Para carregar variáveis de ambiente
 
 const app = express();
-
+const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
 // Configuração de CORS para permitir requisições do frontend
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // URL do frontend
+  origin: frontendURL, // URL do frontend
   credentials: true
 }));
 

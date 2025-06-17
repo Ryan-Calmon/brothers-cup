@@ -22,7 +22,7 @@ function FormularioInscricao() {
 
   const checkVagasDisponiveis = async (categoria) => {
     try {
-      const res = await fetch(`http://localhost:5000/vagas/${categoria}`);
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/vagas/${categoria}` );
       const data = await res.json();
       setVagasRestantes(data.vagas);
     } catch (err) {
@@ -99,7 +99,7 @@ const handleSubmit = async () => {
 
   try {
     // Apenas uma chamada para enviar a inscrição
-    const inscricaoRes = await fetch('http://localhost:5000/inscricoes', {
+    const inscricaoRes = await fetch(`${process.env.REACT_APP_BACKEND_URL}/inscricoes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
