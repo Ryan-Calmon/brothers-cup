@@ -9,6 +9,8 @@ import "../styles/formularioinscricao.css";
 function FormularioInscricao() {
   const [vagasRestantes, setVagasRestantes] = useState(null);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+  const [formaPagamento, setFormaPagamento] = useState('pix');
+  const [segundaInscricao, setSegundaInscricao] = useState(false);
 
   useEffect(() => {
     if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
@@ -20,7 +22,7 @@ function FormularioInscricao() {
 
   const checkVagasDisponiveis = async (categoria) => {
     try {
-      const res = await fetch(`http://localhost:5000/vagas/${categoria}` );
+      const res = await fetch(`http://localhost:5000/vagas/${categoria}`);
       const data = await res.json();
       setVagasRestantes(data.vagas);
     } catch (err) {
@@ -31,7 +33,7 @@ function FormularioInscricao() {
 
   const isCategoriaSemVagas = vagasRestantes === 0;
   const temVagasRestantes = vagasRestantes !== null && vagasRestantes <= 6 && vagasRestantes > 0;
-
+  
   const [formData, setFormData] = useState({
     representante: '',
     parceiro: '',
@@ -42,8 +44,8 @@ function FormularioInscricao() {
     categoria: '',
     ctRepresentante: '',
     ctParceiro: '',
-    celular: '',
-    aceitarTermos: false, // Novo estado para o checkbox
+    celular: '', // Adicionando celular
+    aceitarTermos: false,
   });
 
   const [camposInvalidos, setCamposInvalidos] = useState({});
@@ -55,72 +57,87 @@ function FormularioInscricao() {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleSubmit = async () => {
-    const camposObrigatorios = [
-      'representante',
-      'parceiro',
-      'instagramRepresentante',
-      'instagramParceiro',
-      'uniformeRepresentante',
-      'uniformeParceiro',
-      'categoria',
-      'aceitarTermos', // Verifica se o checkbox de termos foi marcado
-    ];
+ const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const novosInvalidos = {};
+const handleSubmit = async () => {
+  // Se já estiver enviando a inscrição, retorna
+  if (isSubmitting) return;
 
-    camposObrigatorios.forEach((campo) => {
-      if (!formData[campo] || formData[campo] === 'Categoria' || formData[campo] === 'Selecione o tamanho') {
-        novosInvalidos[campo] = true;
-      }
+  setIsSubmitting(true);
+
+  const camposObrigatorios = [
+    'representante',
+    'parceiro',
+    'instagramRepresentante',
+    'instagramParceiro',
+    'uniformeRepresentante',
+    'uniformeParceiro',
+    'categoria',
+    'celular',
+    'aceitarTermos', // Verifica se o checkbox de termos foi marcado
+  ];
+
+  const novosInvalidos = {};
+
+  camposObrigatorios.forEach((campo) => {
+    if (!formData[campo] || formData[campo] === 'Categoria' || formData[campo] === 'Selecione o tamanho') {
+      novosInvalidos[campo] = true;
+    }
+  });
+
+  if (!formData.aceitarTermos) {
+    novosInvalidos.aceitarTermos = true;
+  }
+
+  setCamposInvalidos(novosInvalidos);
+
+  if (Object.keys(novosInvalidos).length > 0) {
+    setError('Por favor, preencha todos os campos obrigatórios e aceite os Termos e Condições.');
+    setIsSubmitting(false);
+    return;
+  }
+
+  try {
+    // Apenas uma chamada para enviar a inscrição
+    const inscricaoRes = await fetch('http://localhost:5000/inscricoes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
     });
 
-    if (!formData.aceitarTermos) {
-      novosInvalidos.aceitarTermos = true; // Marcar como inválido se não for aceito
-    }
-
-    setCamposInvalidos(novosInvalidos);
-
-    if (Object.keys(novosInvalidos).length > 0) {
-      setError('Por favor, preencha todos os campos obrigatórios e aceite os Termos e Condições.');
-      return;
-    }
-
-    try {
-      // Primeiro, verifica as vagas (a rota /inscricao no backend agora só verifica vagas)
-      const vagasRes = await fetch('http://localhost:5000/inscricao', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData ), // Envia o formData para a verificação de vagas
+    if (inscricaoRes.ok) {
+      const inscricaoData = await inscricaoRes.json();
+      setMessage("Inscrição realizada com sucesso!");
+      // Adicione estas linhas para zerar o formulário
+      setFormData({
+        representante: "",
+        parceiro: "",
+        instagramRepresentante: "",
+        instagramParceiro: "",
+        uniformeRepresentante: "",
+        uniformeParceiro: "",
+        categoria: "",
+        ctRepresentante: "",
+        ctParceiro: "",
+        celular: "",
+        aceitarTermos: false,
       });
-
-      if (!vagasRes.ok) {
-        const errorData = await vagasRes.json();
-        setError(errorData.message || 'Erro ao verificar vagas.');
-        return; // Para a execução se não houver vagas
-      }
-
-      // Se houver vagas, envia os dados da inscrição para o banco
-      const inscricaoRes = await fetch('http://localhost:5000/inscricao/criar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData), // Envia os dados do formulário para salvar no banco de dados
-      });
-
-      if (inscricaoRes.ok) {
-        const inscricaoData = await inscricaoRes.json();
-        setMessage('Inscrição realizada com sucesso!');
-        // Opcionalmente, você pode redirecionar ou limpar o formulário aqui
-      } else {
-        const errorData = await inscricaoRes.json();
-        setError(errorData.message || 'Erro ao salvar inscrição.');
-      }
-
-    } catch (err) {
-      console.error(err);
-      setError('Erro ao conectar com o servidor ou processar a inscrição.');
+      setCamposInvalidos({});
+      setError("");
+      setCategoriaSelecionada(""); // Zera a categoria selecionada
+      setVagasRestantes(null); // Zera as vagas restantes
+      setSegundaInscricao(false); // Zera a segunda inscrição
+    } else {
+      const errorData = await inscricaoRes.json();
+      setError(errorData.message || 'Erro ao salvar inscrição.');
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setError('Erro ao conectar com o servidor ou processar a inscrição.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="d-flex justify-content-center">
@@ -161,22 +178,137 @@ function FormularioInscricao() {
                 />
               </div>
             </div>
-            <div className="row">
-              <div className='col-12 col-md-6'>
-                <p className='sobre-inscricao'> Telefone do Representante </p>
+            {/* Adicionando número de celular do representante */}
+            <div className='row'>
+              <div className='col-12'>
+                <p className='sobre-inscricao'> Celular do Representante </p>
                 <input
                   type="text"
                   name="celular"
                   value={formData.celular}
                   onChange={handleChange}
-                  placeholder="Telefone com DDD *"
-                  className={`input ${camposInvalidos.parceiro ? 'input-invalido' : ''}`}
+                  placeholder="Celular com DDD *"
+                  className={`input ${camposInvalidos.celular ? 'input-invalido' : ''}`}
                 />
               </div>
             </div>
           </div>
 
-          {/* Outros campos permanecem os mesmos */}
+          {/* Instagram */}
+          <div className='modal-separado'>
+            <div className='titulo-inscricao'>
+              <CiInstagram />
+              <p>Instagram</p>
+            </div>
+            <div className='row'>
+              <div className='col-12 col-md-6'>
+                <p className='sobre-inscricao'> @ do Representante </p>
+                <input
+                  type="text"
+                  name="instagramRepresentante"
+                  value={formData.instagramRepresentante}
+                  onChange={handleChange}
+                  placeholder="@ do Representante *"
+                  className={`input ${camposInvalidos.instagramRepresentante ? 'input-invalido' : ''}`}
+                />
+              </div>
+              <div className='col-12 col-md-6'>
+                <p className='sobre-inscricao'> @ do Parceiro </p>
+                <input
+                  type="text"
+                  name="instagramParceiro"
+                  value={formData.instagramParceiro}
+                  onChange={handleChange}
+                  placeholder="@ do Parceiro *"
+                  className={`input ${camposInvalidos.instagramParceiro ? 'input-invalido' : ''}`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CTs */}
+          <div className='modal-separado'>
+            <div className='titulo-inscricao'>
+              <MdOutlineStadium />
+              <p className='dados-dupla'> CTs </p>
+            </div>
+            <div className='row'>
+              <div className='col-12 col-md-6'>
+                <p className='sobre-inscricao'> CT do Representante </p>
+                <input
+                  type="text"
+                  name="ctRepresentante"
+                  value={formData.ctRepresentante}
+                  onChange={handleChange}
+                  placeholder="CT do Representante"
+                  className="input"
+                />
+              </div>
+              <div className='col-12 col-md-6'>
+                <p className='sobre-inscricao'> CT do Parceiro </p>
+                <input
+                  type="text"
+                  name="ctParceiro"
+                  value={formData.ctParceiro}
+                  onChange={handleChange}
+                  placeholder="CT do Parceiro"
+                  className="input"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Tamanho dos Uniformes */}
+          <div className='modal-separado'>
+            <div className='titulo-inscricao'>
+              <IoShirt />
+              <p className='dados-dupla'> Tamanho dos Uniformes </p>
+            </div>
+            <div className='row'>
+              <div className='col-12 col-md-6'>
+                <p className='sobre-inscricao'> Tamanho - Representante </p>
+                <select
+                  className={`input ${camposInvalidos.uniformeRepresentante ? 'input-invalido' : ''}`}
+                  name="uniformeRepresentante"
+                  value={formData.uniformeRepresentante}
+                  onChange={handleChange}
+                >
+                  <option>Selecione o tamanho</option>
+                  <option>PP Masculino</option>
+                  <option>P Masculino</option>
+                  <option>M Masculino</option>
+                  <option>G Masculino</option>
+                  <option>GG Masculino</option>
+                  <option>PP Feminino</option>
+                  <option>P Feminino</option>
+                  <option>M Feminino</option>
+                  <option>G Feminino</option>
+                  <option>GG Feminino</option>
+                </select>
+              </div>
+              <div className='col-12 col-md-6'>
+                <p className='sobre-inscricao'> Tamanho - Parceiro </p>
+                <select
+                  className={`input ${camposInvalidos.uniformeParceiro ? 'input-invalido' : ''}`}
+                  name="uniformeParceiro"
+                  value={formData.uniformeParceiro}
+                  onChange={handleChange}
+                >
+                  <option>Selecione o tamanho</option>
+                  <option>PP Masculino</option>
+                  <option>P Masculino</option>
+                  <option>M Masculino</option>
+                  <option>G Masculino</option>
+                  <option>GG Masculino</option>
+                  <option>PP Feminino</option>
+                  <option>P Feminino</option>
+                  <option>M Feminino</option>
+                  <option>G Feminino</option>
+                  <option>GG Feminino</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
           {/* Categoria */}
           <div className='modal-separado'>
@@ -207,26 +339,87 @@ function FormularioInscricao() {
                 </p>
               )}
               {isCategoriaSemVagas && (
-                <p style={{ color: 'red', marginTop: '10px' }}>
+                <p style={{ color: 'red', marginTop: '10px' }} >
                   Não há mais vagas nesta categoria.
                 </p>
               )}
             </div>
           </div>
 
-          {/* Mensagens de erro ou sucesso */}
-          {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
-          {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
+          {/* Forma de Pagamento */}
+          <div className='modal-separado'>
+            <p className='titulo-inscricao'>Forma de Pagamento</p>
+            <select
+              className='input'
+              name='formaPagamento'
+              value={formaPagamento}
+              onChange={(e) => setFormaPagamento(e.target.value)}
+            >
+              <option value="pix">PIX</option>
+              <option value="cartao">Cartão de Crédito</option>
+            </select>
+          </div>
 
-          {/* Botão de Inscrição */}
+          {/* Segunda Inscrição */}
+          <div className="modal-separado">
+            <div className="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="segundaInscricao"
+                name="segundaInscricao"
+                className="segundaInscricao"
+                checked={segundaInscricao}
+                onChange={() => setSegundaInscricao(!segundaInscricao)}  // Alterna entre true/false
+              />
+              <label htmlFor="segundaInscricao">
+                Segunda inscrição
+              </label>
+            </div>
+
+            {/* Exibe a mensagem em vermelho se a segunda inscrição estiver marcada */}
+            {segundaInscricao && (
+              <p style={{ color: 'red', marginTop: '10px' }}>
+                Para sua segunda inscrição, nos chame no direct!
+              </p>
+            )}
+          </div>
+
+         {/* Termos e Condições */}
+           <div className="modal-separado">
+            <div className="termos-container">
+              <input
+                type="checkbox"
+                id="AceitarTermos"
+                name="aceitarTermos"
+                className="AceitarTermos"
+                checked={formData.aceitarTermos}
+                onChange={handleChange}
+              />
+              <label htmlFor="AceitarTermos">
+                Aceito os{" "}
+                <a href="/docs/termos-brotherscup.pdf" target="_blank" rel="noopener noreferrer">
+                  Termos e Condições
+                </a>{" "}
+                e o{" "}
+                <a href="/docs/termo-privacidade.pdf" target="_blank" rel="noopener noreferrer">
+                  Termo de Privacidade
+                </a>
+              </label>
+            </div>
+          </div>
+
+          {/* Botão de Inscrição - Desativado se "Segunda Inscrição" for marcada */}
           <button
             className='botao-inscricao'
             onClick={handleSubmit}
-            disabled={isCategoriaSemVagas}  // Desativa o botão se não houver vagas
+            disabled={isSubmitting || isCategoriaSemVagas}
           >
-            Inscrever-se
+            {isSubmitting ? "Enviando..." : "Inscrever-se"}
           </button>
 
+          {/* Exibir mensagens de erro ou sucesso */}
+          {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+          {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
         </div>
       </div>
     </div>
@@ -234,3 +427,5 @@ function FormularioInscricao() {
 }
 
 export default FormularioInscricao;
+
+

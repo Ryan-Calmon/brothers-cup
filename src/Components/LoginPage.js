@@ -2,54 +2,146 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/LoginPage.css';
 
-function LoginPage({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+function LoginPage() {
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
   const [error, setError] = useState('');
-  const navigate = useNavigate(); // Substituindo useHistory por useNavigate
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (username === 'adminBrothersCup' && password === 'Calmon@05') {
-      onLogin(); // Chama a função para alterar o estado do login
-      navigate('/admin'); // Redireciona para a página de administração
-    } else {
-      setError('Usuário ou senha incorretos');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Limpar erro quando o usuário começar a digitar
+    if (error) setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (isLoading) return;
+
+    // Validação básica
+    if (!formData.username || !formData.password) {
+      setError('Por favor, preencha todos os campos.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Login bem-sucedido
+        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('adminUser', JSON.stringify(data.user));
+        
+        // Redirecionar para a página de administração
+        navigate('/admin');
+      } else {
+        // Login falhou
+        setError(data.message || 'Erro ao fazer login. Verifique suas credenciais.');
+      }
+    } catch (err) {
+      console.error('Erro no login:', err);
+      setError('Erro de conexão. Verifique se o servidor está funcionando.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e);
     }
   };
 
   return (
     <div className="login-container">
-        <div className='login-menu'>
-      <p className='login'>Login</p>
+      <div className="login-card">
+        <div className="login-header">
+          <h1>🏆 Brothers Cup</h1>
+          <h2>Administração</h2>
+          <p>Faça login para acessar o painel administrativo</p>
+        </div>
 
-      {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="form-group">
+            <label htmlFor="username">Usuário</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              onKeyPress={handleKeyPress}
+              placeholder="Digite seu usuário"
+              className={error ? 'error' : ''}
+              disabled={isLoading}
+              autoComplete="username"
+            />
+          </div>
 
-      <div className="input-group">
-        <label htmlFor="username">Usuário:</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Digite o usuário"
-        />
-      </div>
+          <div className="form-group">
+            <label htmlFor="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              onKeyPress={handleKeyPress}
+              placeholder="Digite sua senha"
+              className={error ? 'error' : ''}
+              disabled={isLoading}
+              autoComplete="current-password"
+            />
+          </div>
 
-      <div className="input-group">
-        <label htmlFor="password">Senha:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Digite a senha"
-        />
-      </div>
+          {error && (
+            <div className="error-message">
+              <span>⚠️ {error}</span>
+            </div>
+          )}
 
-      <button className='entrar' onClick={handleLogin}>Entrar</button>
+          <button 
+            type="submit" 
+            className="login-button"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span className="loading-spinner"></span>
+                Entrando...
+              </>
+            ) : (
+              'Entrar'
+            )}
+          </button>
+        </form>
+
+        <div className="login-footer">
+          <p>Acesso restrito a administradores autorizados</p>
+        </div>
       </div>
     </div>
   );
 }
 
 export default LoginPage;
+

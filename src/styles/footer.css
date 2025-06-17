@@ -7,13 +7,23 @@
   font-size: 14px;  /* Tamanho da fonte */
   font-family: 'Roboto', sans-serif;  /* Fonte coerente com o resto do site */
   
-  position: fixed;  /* Faz o footer ficar fixo */
-  bottom: 0;  /* Posiciona o footer na parte inferior */
-  left: 0;
+  position: relative;  /* Mudando para 'relative' */
+  margin-top: auto;  /* Vai para o final do conteúdo */
   width: 100%;  /* Faz o footer ocupar toda a largura da tela */
-  z-index: 999;  /* Garante que o footer fique acima de outros conteúdos */
 }
 
 .footer p {
   margin: 0;  /* Remove margens extras */
+}
+
+/* Fazendo com que o conteúdo ocupe pelo menos 100vh */
+body, html {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;  /* Faz o conteúdo ocupar o restante do espaço */
 }

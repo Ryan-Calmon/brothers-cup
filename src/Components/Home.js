@@ -1,6 +1,6 @@
 import React from "react";
-import ImagemBanner from "../images/Feed Divulgação Certo 8 duplas.png";
-import ImagemBannerPC from "../images/Feed Divulgação Certo 8 duplas.png";
+import ImagemBanner from "../images/Feed Divulgação Certo 8 duplas.webp";
+import ImagemBannerPC from "../images/Feed Divulgação Certo 8 duplas.webp";
 import "../styles/home.css";
 function Home(){
 

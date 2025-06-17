@@ -1,33 +1,49 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'; // Usando Navigate para redirecionamento
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Header from './Components/Header';
 import Home from './Components/Home';
 import PrimeiraEtapa from './Components/PrimeiraEtapa';
 import Inscricao from './Components/FormularioInscricao';
 import Lightning from './Components/Lightning';
-import AdminPage from './Components/AdminPage'; // Página de admin
-import LoginPage from './Components/LoginPage'; // Página de login
+import AdminPage from './Components/AdminPage';
+import LoginPage from './Components/LoginPage';
 import Contato from './Components/Contato';
 import Footer from './Components/Footer';
 import Local from './Components/Local';
 import Sucesso from './Components/Sucesso';
-import Tabelas from './Components/Tabela'; // Importando a página de Tabela
+import Tabelas from './Components/Tabela';
 import './App.css';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Estado de autenticação
+  // Inicializa isAuthenticated verificando se há um token no localStorage
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('adminToken') ? true : false;
+  });
+
+  // Adiciona um useEffect para reagir a mudanças no localStorage (se necessário, embora o LoginPage já lide com isso)
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAuthenticated(localStorage.getItem('adminToken') ? true : false);
+    };
+    // Opcional: Adicionar um listener para o evento storage, caso o token seja removido em outra aba/janela
+    window.addEventListener('storage', checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, []);
 
   const handleLogin = () => {
-    setIsAuthenticated(true); // Usuário autenticado
+    setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false); // Deslogar o usuário
+    localStorage.removeItem('adminToken'); // Remove o token ao deslogar
+    localStorage.removeItem('adminUser'); // Remove o usuário ao deslogar
+    setIsAuthenticated(false);
   };
 
   return (
     <Router>
-      {/* Fundo com efeito Lightning */}
       <div
         style={{
           width: '100%',
@@ -47,12 +63,10 @@ function App() {
         />
       </div>
 
-      {/* Conteúdo principal */}
       <Header />
 
       <main>
         <Routes>
-          {/* A página principal que contém as seções dentro */}
           <Route path="/" element={
             <div>
               <section id="inicio">
@@ -74,22 +88,19 @@ function App() {
             </div>
           } />
 
-          {/* Página de login */}
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
            <Route path="/sucesso" element={<Sucesso onLogin={handleLogin} />} />
-          {/* Página de administração protegida */}
           <Route
             path="/admin"
             element={
               isAuthenticated ? (
-                <AdminPage />
+                <AdminPage onLogout={handleLogout} /> // Passa handleLogout para AdminPage
               ) : (
-                <Navigate to="/login" replace /> // Redireciona para a tela de login se não autenticado
+                <Navigate to="/login" replace />
               )
             }
           />
 
-          {/* Página de Tabela */}
           <Route path="/tabelas" element={<Tabelas />} />
         </Routes>
       </main>
@@ -100,3 +111,5 @@ function App() {
 }
 
 export default App;
+
+

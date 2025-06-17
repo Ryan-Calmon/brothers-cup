@@ -20,9 +20,13 @@
     display: block;
     border-radius: 10px; /* Para a imagem ter cantos arredondados */
 }
-.foto-divulgacao-pc{
-    border-radius: 10px;
+.foto-divulgacao-pc {
+    width: 100%; /* Garante que a imagem de PC ocupe toda a largura da div */
+    height: auto; /* Mantém a proporção da imagem */
+    border-radius: 10px; /* Garantir os cantos arredondados */
+    display: block; /* Garante que a imagem se comporte corretamente */
 }
+
 @property --angle{
     syntax: "<angle>" ;
     initial-value: 0deg;

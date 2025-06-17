@@ -1,181 +1,567 @@
-/* Garantir que o body ocupe toda a largura da tela */
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden; /* Impede o scroll horizontal */
-}
-.botoes-admin{
-  width: 700px;
-}
-.pago {
-  background-color: #e6ffe6; /* verde claro */
-}
-/* Ajustes no container da página de admin */
-/* Ajustes no container da página de admin */
+
+/* Container principal da página de admin */
 .admin-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   padding: 20px;
-  width: 100%;  /* Garante que ocupe 100% da largura */
-  box-sizing: border-box;
-}
-
-/* Estilo do botão de fechar dentro do formulário */
-.close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: transparent;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: red;
-}
-
-.close-button:hover {
-  color: darkred;
-}
-
-/* Estilo para o formulário de edição */
-.edit-form {
   width: 100%;
-  max-width: 1200px; /* Ajusta a largura máxima da tabela */
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-  overflow-x: auto;
-  position: relative; /* Garante que o botão de fechar fique dentro da div */
+  box-sizing: border-box;
+  min-height: 100vh; /* Garante que o container ocupe a altura total da viewport */
 }
 
-/* Outros estilos */
+/* Cabeçalho */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px; /* Limita a largura do cabeçalho */
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+
 .admin-title {
-  color: white;
+  color: #fdd835; /* Amarelo para o título principal */
+  font-size: 2.5em;
+  margin: 0;
+  display: flex;
+  align-items: center;
 }
 
-.save-button {
-  background-color: #1976d2;
-  font-size: 25px;
+.admin-title .trophy-icon {
+  margin-right: 10px;
+  font-size: 1.2em; /* Ajusta o tamanho do ícone */
+}
+
+.admin-subtitle {
+  color: #bbbbbb; /* Cinza claro para o subtítulo */
+  font-size: 1.1em;
+  margin-top: 5px;
+}
+
+.admin-subtitle strong {
+  color: #ffffff;
+}
+
+/* Botão de Sair */
+.logout-button {
+  background-color: #e53935; /* Vermelho */
   color: white;
   border: none;
-  border-radius: 10px;
-  margin-top: 15px;
+  border-radius: 8px;
+  padding: 12px 25px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logout-button:hover {
+  background-color: #c62828;
+  transform: translateY(-2px);
+}
+
+/* Controles (Pesquisa e Botões de Ação) */
+.admin-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1400px;
+  margin-bottom: 30px;
+}
+
+.search-container {
+  width: 100%;
 }
 
 .search-input {
   width: 100%;
-   max-width: 700px;
-  padding: 10px;
-  margin: 10px 0;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  background-color:#6a0f81 ;
-  border-radius: 4px;
+  padding: 12px 15px;
+  font-size: 1.1em;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #2a2a4a; /* Fundo escuro para o input */
+  color: #e0e0e0; /* Texto claro */
   box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.inscricoes-list {
-  width: 100%;
-  max-width: 1500px; /* Ajusta a largura máxima da tabela */
-  background-color: white;
+.search-input::placeholder {
+  color: #888; /* Placeholder mais visível */
+}
+
+.search-input:focus {
+  border-color: #6a0f81; /* Borda roxa ao focar */
+  box-shadow: 0 0 0 3px rgba(106, 15, 129, 0.3);
+  outline: none;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.refresh-button, .filter-button, .export-button {
+  padding: 12px 20px;
+  border: none;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-button {
+  background-color: #2196F3; /* Azul */
+}
+
+.refresh-button:hover {
+  background-color: #1976d2;
+  transform: translateY(-2px);
+}
+
+.filter-button {
+  background-color: #673ab7; /* Roxo */
+}
+
+.filter-button.active {
+  background-color: #4a148c; /* Roxo mais escuro quando ativo */
+}
+
+.filter-button:hover {
+  background-color: #5e35b1;
+  transform: translateY(-2px);
+}
+
+.export-button {
+  background-color: #4CAF50; /* Verde */
+}
+
+.export-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+/* Mensagens de erro/sucesso */
+.error-banner {
+  background-color: #f44336; /* Vermelho */
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 1400px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-banner span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+/* Tabela de Inscrições */
+.inscricoes-container {
+  width: 100%;
+  max-width: 1400px;
+  background-color: #2a2a4a; /* Fundo escuro para o container da tabela */
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   padding: 20px;
-  margin-top: 20px;
   overflow-x: auto; /* Permite rolagem horizontal em tabelas grandes */
+}
+
+.no-data {
+  text-align: center;
+  padding: 50px;
+  color: #bbbbbb;
+  font-size: 1.2em;
+}
+
+.clear-search {
+  background-color: #6a0f81;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.clear-search:hover {
+  background-color: #4a0b5e;
+}
+
+.table-container {
+  overflow-x: auto;
 }
 
 .inscricoes-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  min-width: 900px; /* Garante que a tabela não fique muito estreita */
 }
 
 .inscricoes-table th, .inscricoes-table td {
-  padding: 12px;
+  padding: 15px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #444; /* Borda mais escura */
+  color: #e0e0e0; /* Texto claro */
 }
 
 .inscricoes-table th {
-  background-color: #6a0f81;
+  background-color: #6a0f81; /* Roxo escuro para o cabeçalho */
   color: white;
   font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  letter-spacing: 0.05em;
 }
 
 .inscricoes-table tr:nth-child(even) {
-  background-color: #f2f2f2;
+  background-color: #3a3a5a; /* Linhas pares com fundo ligeiramente diferente */
 }
 
-/* Botões de ação */
-.admin-button {
-  padding: 8px 16px;
-  margin-right: 10px;
+.inscricoes-table tr:hover {
+  background-color: #4a4a6a; /* Efeito hover */
+}
+
+.pago {
+  background-color: #285a28 !important; /* Verde escuro para pago, com !important para sobrescrever */
+}
+
+.pago:hover {
+  background-color: #3a6a3a !important;
+}
+
+/* Células específicas */
+.id-cell { width: 5%; }
+.name-cell { width: 15%; }
+.phone-cell { width: 10%; }
+.instagram-cell { width: 12%; }
+.ct-cell { width: 8%; }
+.category-cell { width: 10%; }
+.date-cell { width: 10%; }
+.status-cell { width: 10%; }
+.actions-cell { width: 10%; text-align: center; }
+
+/* Badges de Status */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-badge.aprovado {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+.status-badge.pendente {
+  background-color: #ffc107; /* Amarelo */
+  color: #333;
+}
+
+.status-badge.rejeitado {
+  background-color: #f44336; /* Vermelho */
+  color: white;
+}
+
+/* Botões de Ação na Tabela */
+.edit-button, .delete-button {
+  background-color: #6a0f81; /* Roxo */
+  color: white;
   border: none;
   border-radius: 5px;
+  padding: 8px 12px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
+  font-size: 0.9em;
+  margin: 0 5px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .edit-button {
-  background-color: #4CAF50;
-  color: white;
+  background-color: #2196F3; /* Azul para editar */
 }
 
 .edit-button:hover {
-  background-color: #45a049;
+  background-color: #1976d2;
+  transform: scale(1.05);
 }
 
 .delete-button {
-  background-color: #f44336;
-  color: white;
+  background-color: #f44336; /* Vermelho para deletar */
 }
 
 .delete-button:hover {
-  background-color: #e53935;
-}
-
-.back-button {
-  padding: 10px 20px;
-  font-size: 1.2rem;
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
-}
-
-.back-button:hover {
-  background-color: #1976d2;
-}
-
-.edit-form label {
-  color: black;
-}
-.edit-form input{
-  background-color: #6a0f81;
-}
-.edit-form select{
-  background-color: rgb(106, 15, 129);
-}
-/* AdminPage.css */
-.logout-button {
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-  margin-bottom: 20px;
-}
-
-.logout-button:hover {
   background-color: #d32f2f;
+  transform: scale(1.05);
 }
+
+/* Modal de Edição */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro semi-transparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.edit-modal {
+  background-color: #2a2a4a; /* Fundo escuro para o modal */
+  border-radius: 10px;
+  padding: 30px;
+  width: 90%;
+  max-width: 700px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  color: #e0e0e0; /* Texto claro no modal */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 15px;
+}
+
+.modal-header h2 {
+  color: #fdd835; /* Amarelo para o título do modal */
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #e0e0e0; /* Cor clara para o botão de fechar */
+  font-size: 1.8em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: #f44336; /* Vermelho ao passar o mouse */
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap; /* Permite que os campos quebrem a linha em telas menores */
+}
+
+.form-group {
+  flex: 1;
+  min-width: 250px; /* Garante largura mínima para campos */
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  color: #bbbbbb; /* Cor da label */
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.form-group input, .form-group select {
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #3a3a5a; /* Fundo escuro para inputs/selects */
+  color: #e0e0e0; /* Texto claro */
+  font-size: 1em;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: #6a0f81;
+  box-shadow: 0 0 0 3px rgba(106, 15, 129, 0.3);
+  outline: none;
+}
+
+.form-group select {
+  appearance: none; /* Remove estilo padrão do select */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.2-5.4H18.6c-5%200-9.3%201.8-13.2%205.4A17.6%2017.6%200%200%200%200%2082.2c0%204.6%201.8%208.9%205.4%2012.8l128%20127.9c3.9%203.9%208.2%205.8%2012.8%205.8s8.9-1.9%2012.8-5.8L287%2095c3.5-3.9%205.4-8.2%205.4-12.8%200-4.6-1.9-8.9-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 10px top 50%;
+  background-size: 12px auto;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #6a0f81; /* Cor do checkbox */
+}
+
+.checkbox-group label {
+  margin-bottom: 0;
+  color: #e0e0e0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+}
+
+.save-button, .cancel-button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  color: white;
+}
+
+.save-button {
+  background-color: #4CAF50; /* Verde para salvar */
+}
+
+.save-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+.cancel-button {
+  background-color: #757575; /* Cinza para cancelar */
+}
+
+.cancel-button:hover {
+  background-color: #616161;
+  transform: translateY(-2px);
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: #e0e0e0;
+  font-size: 1.2em;
+}
+
+.loading-spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fdd835; /* Amarelo */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 15px;
+}
+
+
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .logout-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-title {
+    font-size: 2em;
+  }
+
+  .admin-subtitle {
+    font-size: 1em;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .refresh-button, .filter-button, .export-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .inscricoes-table th, .inscricoes-table td {
+    padding: 10px;
+    font-size: 0.9em;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .form-group {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .save-button, .cancel-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
