@@ -8,6 +8,7 @@ require('dotenv').config(); // Para carregar variáveis de ambiente
 
 const app = express();
 const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
+console.log('CORS Frontend URL configurada:', frontendURL );
 // Configuração de CORS para permitir requisições do frontend
 app.use(cors({
   origin: frontendURL, // URL do frontend

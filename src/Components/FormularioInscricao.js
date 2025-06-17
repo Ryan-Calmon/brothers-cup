@@ -12,6 +12,7 @@ function FormularioInscricao() {
   const [formaPagamento, setFormaPagamento] = useState('pix');
   const [segundaInscricao, setSegundaInscricao] = useState(false);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'; 
+  
   useEffect(() => {
     if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
       checkVagasDisponiveis(categoriaSelecionada);
