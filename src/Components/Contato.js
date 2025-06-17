@@ -22,7 +22,7 @@ function Contato(){
     </div>
         <div className="tiktok">
              <a
-        href="https://www.instagram.com/brotherscup_ftv/"
+        href="https://www.tiktok.com/@brotherscup_ftv"
          target="_blank" // Abre o link em uma nova aba
         rel="noopener noreferrer" // Para melhorar a segurança ao abrir em uma nova aba
          >
@@ -31,7 +31,7 @@ function Contato(){
     </div>
       <div className="wpp">
              <a
-        href="https://wa.me/+552198280800" 
+        href="https://wa.me/+5521988280800" 
          target="_blank" // Abre o link em uma nova aba
         rel="noopener noreferrer" // Para melhorar a segurança ao abrir em uma nova aba
          >
