@@ -8,7 +8,7 @@ import "../styles/formularioinscricao.css";
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 
 initMercadoPago(`${process.env.MP_PUBLIC_KEY}`);
-const [preferenceId, setPreferenceId] = useState('');
+
 
 function FormularioInscricao() {
   const [vagasRestantes, setVagasRestantes] = useState(null);
@@ -16,7 +16,7 @@ function FormularioInscricao() {
   const [formaPagamento, setFormaPagamento] = useState('pix');
   const [segundaInscricao, setSegundaInscricao] = useState(false);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
-  
+  const [preferenceId, setPreferenceId] = useState('');
   useEffect(() => {
     if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
       checkVagasDisponiveis(categoriaSelecionada);
