@@ -5,13 +5,16 @@ import { IoShirt } from "react-icons/io5";
 import { CiInstagram } from "react-icons/ci";
 import { MdOutlineStadium } from "react-icons/md";
 import "../styles/formularioinscricao.css";
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+
+initMercadoPago(`${process.env.MP_PUBLIC_KEY}`);
 
 function FormularioInscricao() {
   const [vagasRestantes, setVagasRestantes] = useState(null);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
   const [formaPagamento, setFormaPagamento] = useState('pix');
   const [segundaInscricao, setSegundaInscricao] = useState(false);
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'; 
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
   
   useEffect(() => {
     if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
@@ -63,9 +66,9 @@ function FormularioInscricao() {
 const handleSubmit = async () => {
   // Se já estiver enviando a inscrição, retorna
   if (isSubmitting) return;
-
   setIsSubmitting(true);
 
+  // Validação dos campos obrigatórios
   const camposObrigatorios = [
     'representante',
     'parceiro',
@@ -79,7 +82,7 @@ const handleSubmit = async () => {
   ];
 
   const novosInvalidos = {};
-
+  
   camposObrigatorios.forEach((campo) => {
     if (!formData[campo] || formData[campo] === 'Categoria' || formData[campo] === 'Selecione o tamanho') {
       novosInvalidos[campo] = true;
@@ -98,8 +101,40 @@ const handleSubmit = async () => {
     return;
   }
 
+  // Passo 1: Criar a preferência de pagamento
+  const title = 'Inscrição Brothers Cup';
+  const price = 250; // Preço da inscrição
+  const quantity = 1;
+
   try {
-    // Apenas uma chamada para enviar a inscrição
+    // Enviar os dados para o backend criar a preferência de pagamento
+    const preferenceResponse = await fetch(`${BACKEND_URL}/mercadopago/create-preference`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, price, quantity }),
+    });
+
+    const preferenceData = await preferenceResponse.json();
+
+    if (preferenceResponse.ok) {
+      // Receber o preferenceId do backend e atualizar o estado
+      setPreferenceId(preferenceData.preferenceId);
+    } else {
+      console.error('Erro ao criar preferência', preferenceData);
+      setError('Erro ao criar preferência de pagamento');
+      setIsSubmitting(false);
+      return;
+    }
+  } catch (error) {
+    console.error('Erro na requisição para criar preferência:', error);
+    setError('Erro na requisição para criar preferência');
+    setIsSubmitting(false);
+    return;
+  }
+
+  // Passo 2: Enviar a inscrição para o backend
+  try {
+    // Enviar os dados da inscrição
     const inscricaoRes = await fetch(`${BACKEND_URL}/inscricoes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -109,6 +144,7 @@ const handleSubmit = async () => {
     if (inscricaoRes.ok) {
       const inscricaoData = await inscricaoRes.json();
       setMessage("Inscrição realizada com sucesso!");
+
       // Adicione estas linhas para zerar o formulário
       setFormData({
         representante: "",
@@ -410,13 +446,21 @@ const handleSubmit = async () => {
           </div>
 
           {/* Botão de Inscrição - Desativado se "Segunda Inscrição" for marcada */}
-          <button
-            className='botao-inscricao'
-            onClick={handleSubmit}
-            disabled={isSubmitting || isCategoriaSemVagas}
-          >
-            {isSubmitting ? "Enviando..." : "Inscrever-se"}
-          </button>
+           <button
+      className='botao-inscricao'
+      onClick={handleSubmit}
+      disabled={isSubmitting || isCategoriaSemVagas}
+    >
+      {isSubmitting ? "Enviando..." : "Inscrever-se"}
+    </button>
+
+    {/* Renderiza o Wallet do Mercado Pago quando o preferenceId estiver disponível */}
+    {preferenceId && (
+      <div style={{ marginTop: '20px' }}>
+        <Wallet initialization={{ preferenceId }} />
+      </div>
+    )}
+
 
           {/* Exibir mensagens de erro ou sucesso */}
           {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}

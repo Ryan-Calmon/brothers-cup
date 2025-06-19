@@ -14,6 +14,9 @@ import Sucesso from './Components/Sucesso';
 import Tabelas from './Components/Tabela';
 import './App.css';
 
+
+
+
 function App() {
   // Inicializa isAuthenticated verificando se há um token no localStorage
   const [isAuthenticated, setIsAuthenticated] = useState(() => {

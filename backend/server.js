@@ -5,10 +5,45 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config(); // Para carregar variáveis de ambiente
+import { MercadoPagoConfig, Preference } from 'mercadopago';
 
+app.post('/mercadopago/create-preference', async (req, res) => {
+  const { title, price, quantity } = req.body;  // Recebe os dados do frontend (ex: título, preço, quantidade)
+
+  const preference = new Preference(client);
+  
+  try {
+    const response = await preference.create({
+      body: {
+        items: [
+          {
+            title: 'Inscrição Brothers Cup',
+            unit_price: 250,
+            quantity: 1,
+          },
+        ],
+        back_urls: {
+          success: "https://www.brotherscup.com.br/successo",
+          failure: "http://www.brotherscup.com.br/falhou",
+          pending: "http://www.brotherscup.com.br/pendente",
+        },
+        auto_return: "approved", // Configuração do retorno automático após o pagamento
+        notification_url: `${process.env.BACKEND_URL}/mercadopago/webhook`, // URL para receber notificações de pagamento
+      }
+    });
+
+    // Retornar o preferenceId
+    res.json({ preferenceId: response.body.id });
+  } catch (error) {
+    console.error('Erro ao criar preferência:', error);
+    res.status(500).json({ message: 'Erro ao criar preferência' });
+  }
+});
+
+
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 const app = express();
-const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
-console.log('CORS Frontend URL configurada:', frontendURL );
+const frontendURL = process.env.FRONTEND_URL;
 // Configuração de CORS para permitir requisições do frontend
 app.use(cors({
   origin: frontendURL, // URL do frontend
@@ -17,19 +52,19 @@ app.use(cors({
 
 // Configuração da conexão com o PostgreSQL
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'brothers_cup',
-  password: process.env.DB_PASSWORD || 'Ryan04052005#',
-  port: process.env.DB_PORT || 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST, 
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
 
 // Middleware para parsear JSON
 app.use(bodyParser.json());
 
 // Configurações de segurança
-const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_muito_segura_mude_em_producao';
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const JWT_SECRET = process.env.JWT_SECRET;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH; // Hash da senha do admin
 
 // Se não houver hash da senha definido, criar um hash padrão (APENAS PARA DESENVOLVIMENTO)
