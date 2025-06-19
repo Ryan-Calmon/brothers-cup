@@ -1,95 +1,83 @@
-const express = require('express');
-const { Pool } = require('pg');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); // Importa MercadoPagoConfig e outros módulos
-require('dotenv').config(); // Para carregar variáveis de ambiente
+const express = require("express");
+const { Pool } = require("pg");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
+require("dotenv").config();
 
 const app = express();
 const frontendURL = process.env.FRONTEND_URL;
 
-// Configuração de CORS mais permissiva para resolver problemas de preflight
 app.use(cors({
-  origin: [frontendURL, 'https://www.brotherscup.com.br', 'http://localhost:3000'], // Múltiplas origens permitidas
+  origin: [frontendURL, "https://www.brotherscup.com.br", "http://localhost:3000"],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200 // Para suporte a navegadores legados
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  optionsSuccessStatus: 200
 }));
 
-// Middleware adicional para lidar com preflight requests
-app.options('*', cors());
+app.options("*", cors());
 
-// Configuração da conexão com o PostgreSQL
 const pool = new Pool({
   user: process.env.DB_USER,
-  host: process.env.DB_HOST, 
+  host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
 });
 
-// Inicializa o cliente do Mercado Pago
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
 });
 
-// Inicializa os objetos de API do Mercado Pago
 const preference = new Preference(client);
 const paymentApi = new Payment(client);
 
-// Middleware para parsear JSON
 app.use(bodyParser.json());
 
-// Configurações de segurança
 const JWT_SECRET = process.env.JWT_SECRET;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH; // Hash da senha do admin
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 
-// Se não houver hash da senha definido, criar um hash padrão (APENAS PARA DESENVOLVIMENTO)
 let adminPasswordHash = ADMIN_PASSWORD_HASH;
 if (!adminPasswordHash) {
-  console.warn('⚠️  AVISO: Usando senha padrão. MUDE EM PRODUÇÃO!');
-  // Hash para a senha "admin123" - MUDE EM PRODUÇÃO
-  adminPasswordHash = '$2b$10$rOOjq7O8J8J8J8J8J8J8JeJ8J8J8J8J8J8J8J8J8J8J8J8J8J8J8J8';
+  console.warn("⚠️  AVISO: Usando senha padrão. MUDE EM PRODUÇÃO!");
+  adminPasswordHash = "$2b$10$rOOjq7O8J8J8J8J8J8J8JeJ8J8J8J8J8J8J8J8J8J8J8J8J8J8J8J8";
 }
 
-// Middleware de autenticação
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Token de acesso não fornecido' });
+    return res.status(401).json({ message: "Token de acesso não fornecido" });
   }
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ message: 'Token inválido ou expirado' });
+      return res.status(403).json({ message: "Token inválido ou expirado" });
     }
     req.user = user;
     next();
   });
 };
 
-// Middleware de autorização baseado em papéis
 const authorizeRoles = (roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        message: 'Acesso negado: você não tem permissão para realizar esta ação' 
+      return res.status(403).json({
+        message: "Acesso negado: você não tem permissão para realizar esta ação",
       });
     }
     next();
   };
 };
 
-// Middleware de rate limiting simples para login
 const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos
+const LOCKOUT_TIME = 15 * 60 * 1000;
 
 const rateLimitLogin = (req, res, next) => {
   const ip = req.ip || req.connection.remoteAddress;
@@ -98,8 +86,8 @@ const rateLimitLogin = (req, res, next) => {
   if (loginAttempts.has(ip)) {
     const attempts = loginAttempts.get(ip);
     if (attempts.count >= MAX_LOGIN_ATTEMPTS && (now - attempts.lastAttempt) < LOCKOUT_TIME) {
-      return res.status(429).json({ 
-        message: 'Muitas tentativas de login. Tente novamente em 15 minutos.' 
+      return res.status(429).json({
+        message: "Muitas tentativas de login. Tente novamente em 15 minutos.",
       });
     }
     if ((now - attempts.lastAttempt) > LOCKOUT_TIME) {
@@ -152,19 +140,114 @@ const savePreferenceToPaymentPreferences = async (preferenceData) => {
   }
 };
 
-// Função para buscar inscrição por external_reference
+// Função auxiliar atualizada para buscar inscrição por external_reference
 const getInscricaoByExternalReference = async (externalReference) => {
   try {
-    const query = `
-      SELECT id, preference_id
+    // Primeiro, tentar buscar por external_reference (se a coluna existir)
+    let query = `
+      SELECT id, preference_id, categoria, status_pagamento
       FROM inscricoes
       WHERE external_reference = $1
     `;
-    const result = await pool.query(query, [externalReference]);
-    return result.rows.length > 0 ? result.rows[0] : null;
+    
+    let result = await pool.query(query, [externalReference]);
+    
+    if (result.rows.length > 0) {
+      return result.rows[0];
+    }
+
+    // Se não encontrou, extrair o ID da inscrição do external_reference
+    const inscricaoIdMatch = externalReference.match(/inscricao_(\d+)/);
+    if (inscricaoIdMatch) {
+      const inscricaoId = inscricaoIdMatch[1];
+      
+      query = `
+        SELECT id, preference_id, categoria, status_pagamento
+        FROM inscricoes
+        WHERE id = $1
+      `;
+      
+      result = await pool.query(query, [inscricaoId]);
+      
+      if (result.rows.length > 0) {
+        return result.rows[0];
+      }
+    }
+
+    return null;
   } catch (error) {
     console.error("Erro ao buscar inscrição por external_reference:", error);
     return null;
+  }
+};
+
+// Função auxiliar para gerenciar vagas baseado no status do pagamento
+const gerenciarVagasPorStatusPagamento = async (externalReference, novoStatus, statusAnterior = null) => {
+  try {
+    // Extrair o ID da inscrição do external_reference
+    const inscricaoIdMatch = externalReference.match(/inscricao_(\d+)/);
+    if (!inscricaoIdMatch) {
+      console.warn(`External reference inválido: ${externalReference}`);
+      return;
+    }
+
+    const inscricaoId = inscricaoIdMatch[1];
+
+    // Buscar a categoria da inscrição
+    const inscricaoResult = await pool.query(
+      "SELECT categoria, status_pagamento FROM inscricoes WHERE id = $1",
+      [inscricaoId]
+    );
+
+    if (inscricaoResult.rowCount === 0) {
+      console.warn(`Inscrição não encontrada: ID ${inscricaoId}`);
+      return;
+    }
+
+    const { categoria, status_pagamento: statusAtual } = inscricaoResult.rows[0];
+    
+    console.log(`🎯 Gerenciando vagas: Inscrição ${inscricaoId}, Categoria ${categoria}`);
+    console.log(`📊 Status: ${statusAtual} → ${novoStatus}`);
+
+    // Lógica para ocupar/liberar vagas
+    let incrementoVagas = 0;
+
+    // Se o status anterior era 'approved' e o novo não é, liberar vaga
+    if (statusAtual === "approved" && novoStatus !== "approved") {
+      incrementoVagas = -1; // Liberar vaga
+      console.log(`🔓 Liberando vaga na categoria ${categoria}`);
+    }
+    // Se o status anterior não era 'approved' e o novo é, ocupar vaga
+    else if (statusAtual !== "approved" && novoStatus === "approved") {
+      incrementoVagas = 1; // Ocupar vaga
+      console.log(`🔒 Ocupando vaga na categoria ${categoria}`);
+    }
+    // Se não houve mudança relevante, não fazer nada
+    else {
+      console.log(`⚪ Sem alteração de vagas necessária`);
+      return;
+    }
+
+    // Atualizar vagas_ocupadas na tabela categorias
+    if (incrementoVagas !== 0) {
+      const updateResult = await pool.query(
+        `UPDATE categorias 
+         SET vagas_ocupadas = GREATEST(0, vagas_ocupadas + $1) 
+         WHERE nome = $2 
+         RETURNING vagas_totais, vagas_ocupadas`,
+        [incrementoVagas, categoria]
+      );
+
+      if (updateResult.rowCount > 0) {
+        const { vagas_totais, vagas_ocupadas } = updateResult.rows[0];
+        console.log(`✅ Vagas atualizadas na categoria ${categoria}: ${vagas_ocupadas}/${vagas_totais}`);
+      } else {
+        console.warn(`Categoria não encontrada: ${categoria}`);
+      }
+    }
+
+  } catch (error) {
+    console.error("Erro ao gerenciar vagas:", error);
   }
 };
 
@@ -203,70 +286,63 @@ const updatePaymentInPaymentPreferences = async (paymentData) => {
 // ROTAS DE AUTENTICAÇÃO
 
 // Rota de login
-app.post('/login', rateLimitLogin, async (req, res) => {
+app.post("/login", rateLimitLogin, async (req, res) => {
   const { username, password } = req.body;
   const ip = req.ip || req.connection.remoteAddress;
 
   try {
-    // Validação básica
     if (!username || !password) {
-      return res.status(400).json({ message: 'Usuário e senha são obrigatórios' });
+      return res.status(400).json({ message: "Usuário e senha são obrigatórios" });
     }
 
-    // Verificar credenciais
     if (username === ADMIN_USERNAME && await bcrypt.compare(password, adminPasswordHash)) {
-      // Login bem-sucedido - limpar tentativas
       loginAttempts.delete(ip);
       
-      // Gerar token JWT
       const token = jwt.sign(
-        { 
-          username: ADMIN_USERNAME, 
-          role: 'admin',
-          iat: Math.floor(Date.now() / 1000)
-        }, 
-        JWT_SECRET, 
-        { expiresIn: '8h' } // Token expira em 8 horas
+        {
+          username: ADMIN_USERNAME,
+          role: "admin",
+          iat: Math.floor(Date.now() / 1000),
+        },
+        JWT_SECRET,
+        { expiresIn: "8h" }
       );
 
-      // Log de auditoria
       console.log(`✅ Login bem-sucedido: ${username} em ${new Date().toISOString()}`);
 
-      return res.status(200).json({ 
-        message: 'Login realizado com sucesso', 
+      return res.status(200).json({
+        message: "Login realizado com sucesso",
         token,
-        user: { username: ADMIN_USERNAME, role: 'admin' }
+        user: { username: ADMIN_USERNAME, role: "admin" },
       });
     } else {
-      // Login falhou - registrar tentativa
       const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
       attempts.count++;
       attempts.lastAttempt = Date.now();
       loginAttempts.set(ip, attempts);
 
-      // Log de auditoria
       console.log(`❌ Tentativa de login falhada: ${username} de ${ip} em ${new Date().toISOString()}`);
 
-      return res.status(401).json({ message: 'Credenciais inválidas' });
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
   } catch (error) {
-    console.error('Erro no login:', error);
-    return res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error("Erro no login:", error);
+    return res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
 // Rota para verificar se o token é válido
-app.get('/verify-token', authenticateToken, (req, res) => {
-  res.status(200).json({ 
-    valid: true, 
-    user: { username: req.user.username, role: req.user.role } 
+app.get("/verify-token", authenticateToken, (req, res) => {
+  res.status(200).json({
+    valid: true,
+    user: { username: req.user.username, role: req.user.role },
   });
 });
 
 // ROTAS PÚBLICAS (sem autenticação)
 
 // Rota para verificar se há vagas disponíveis na categoria
-app.get('/vagas/:categoria', async (req, res) => {
+app.get("/vagas/:categoria", async (req, res) => {
   const categoria = req.params.categoria;
 
   try {
@@ -276,7 +352,7 @@ app.get('/vagas/:categoria', async (req, res) => {
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Categoria não encontrada' });
+      return res.status(404).json({ message: "Categoria não encontrada" });
     }
 
     const { vagas_totais, vagas_ocupadas } = result.rows[0];
@@ -284,112 +360,104 @@ app.get('/vagas/:categoria', async (req, res) => {
 
     res.status(200).json({ vagas: vagas_restantes });
   } catch (err) {
-    console.error('Erro ao verificar vagas:', err);
-    res.status(500).json({ message: 'Erro ao verificar vagas' });
+    console.error("Erro ao verificar vagas:", err);
+    res.status(500).json({ message: "Erro ao verificar vagas" });
   }
 });
 
 // Rota para criar a inscrição (pública) - INTEGRADA COM MERCADO PAGO
-// Rota para criar a inscrição (pública) - INTEGRADA COM MERCADO PAGO
-app.post('/inscricoes', async (req, res) => {
-  const { 
-    representante, 
-    parceiro, 
-    instagramRepresentante, 
-    instagramParceiro, 
-    uniformeRepresentante, 
-    uniformeParceiro, 
-    categoria, 
-    ctRepresentante, 
+// MODIFICADA: Não ocupa vaga imediatamente, apenas após confirmação do pagamento
+app.post("/inscricoes", async (req, res) => {
+  const {
+    representante,
+    parceiro,
+    instagramRepresentante,
+    instagramParceiro,
+    uniformeRepresentante,
+    uniformeParceiro,
+    categoria,
+    ctRepresentante,
     ctParceiro,
     celular,
-    valor_inscricao, // Valor da inscrição
-    forma_pagamento // Forma de pagamento (pix ou cartao)
+    valor_inscricao,
+    forma_pagamento
   } = req.body;
 
   try {
-    // Validação básica
     if (!representante || !parceiro || !categoria || !celular) {
-      return res.status(400).json({ message: 'Campos obrigatórios ausentes' });
+      return res.status(400).json({ message: "Campos obrigatórios ausentes" });
     }
 
-    // Usar valor padrão se não fornecido
     const valorInscricao = valor_inscricao || 250;
-    const formaPagamento = forma_pagamento || 'pix';
+    const formaPagamento = forma_pagamento || "pix";
 
     console.log(`💰 Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
 
-    // Verificar se há vagas disponíveis
     const vagasRes = await pool.query(
       `SELECT vagas_totais, vagas_ocupadas FROM categorias WHERE nome = $1`,
       [categoria]
     );
 
     if (vagasRes.rowCount === 0) {
-      return res.status(404).json({ message: 'Categoria não encontrada' });
+      return res.status(404).json({ message: "Categoria não encontrada" });
     }
 
     const { vagas_totais, vagas_ocupadas } = vagasRes.rows[0];
     if (vagas_ocupadas >= vagas_totais) {
-      return res.status(400).json({ message: 'Não há mais vagas disponíveis para esta categoria.' });
+      return res.status(400).json({ message: "Não há mais vagas disponíveis para esta categoria." });
     }
 
-    // Inserir os dados da inscrição
     const result = await pool.query(
       `INSERT INTO inscricoes (
-        representante, 
-        parceiro, 
-        instagram_representante, 
-        instagram_parceiro, 
-        uniforme_representante, 
-        uniforme_parceiro, 
-        categoria, 
-        ct_representante, 
+        representante,
+        parceiro,
+        instagram_representante,
+        instagram_parceiro,
+        uniforme_representante,
+        uniforme_parceiro,
+        categoria,
+        ct_representante,
         ct_parceiro,
         celular,
         status_pagamento
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
       [
-        representante, 
-        parceiro, 
-        instagramRepresentante, 
-        instagramParceiro, 
-        uniformeRepresentante, 
-        uniformeParceiro, 
-        categoria, 
-        ctRepresentante, 
+        representante,
+        parceiro,
+        instagramRepresentante,
+        instagramParceiro,
+        uniformeRepresentante,
+        uniformeParceiro,
+        categoria,
+        ctRepresentante,
         ctParceiro,
         celular,
-        'pending' // Status inicial como pendente
+        "pending"
       ]
     );
 
     const inscricaoId = result.rows[0].id;
 
-    // Criar preferência de pagamento no Mercado Pago
     const baseUrl = process.env.BACKEND_URL;
     const externalRef = `inscricao_${inscricaoId}`;
 
-    // Configurar métodos de pagamento baseado na forma selecionada
     let paymentMethods = {
       excluded_payment_methods: [],
       excluded_payment_types: [],
       installments: 12,
     };
 
-    if (formaPagamento === 'pix') {
-      // Para PIX: excluir cartões de crédito e débito
+    if (formaPagamento === "pix") {
       paymentMethods.excluded_payment_types = [
         { id: "credit_card" },
         { id: "debit_card" },
         { id: "prepaid_card" }
       ];
-      paymentMethods.installments = 1; // PIX não tem parcelamento
-    } else if (formaPagamento === 'cartao') {
-      // Para Cartão: excluir PIX e outros métodos
+      paymentMethods.installments = 1;
+    } else if (formaPagamento === "cartao") {
       paymentMethods.excluded_payment_types = [
-        { id: "bank_transfer" }, // PIX
-        { id: "ticket" }, // Boleto
+        { id: "bank_transfer" },
+        { id: "ticket" },
         { id: "atm" }
       ];
     }
@@ -415,11 +483,10 @@ app.post('/inscricoes', async (req, res) => {
       statement_descriptor: "BROTHERS CUP",
     };
 
-    console.log('🔧 Configuração de pagamento:', JSON.stringify(paymentMethods, null, 2));
+    console.log("🔧 Configuração de pagamento:", JSON.stringify(paymentMethods, null, 2));
 
     const mpResponse = await preference.create({ body: preferenceBody });
 
-    // Salvar preferência na tabela payment_preferences (se existir)
     try {
       await savePreferenceToPaymentPreferences({
         preference_id: mpResponse.id,
@@ -433,23 +500,17 @@ app.post('/inscricoes', async (req, res) => {
       console.warn("Tabela payment_preferences não existe ou erro ao salvar:", error.message);
     }
 
-    // Atualizar a inscrição com o preference_id
     await updateInscricaoPaymentStatus(
       inscricaoId,
       mpResponse.id,
-      null, // payment_id será atualizado pelo webhook
+      null,
       "pending"
     );
+    
+    console.log(`✅ Nova inscrição criada (PENDENTE): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
+    console.log(`⏳ Vaga NÃO ocupada ainda. Aguardando confirmação do pagamento.`);
 
-    // Atualizar o número de vagas ocupadas
-    await pool.query(
-      `UPDATE categorias SET vagas_ocupadas = vagas_ocupadas + 1 WHERE nome = $1`,
-      [categoria]
-    );
-
-    console.log(`✅ Nova inscrição criada: ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
-
-    res.status(200).json({ 
+    res.status(200).json({
       id: inscricaoId,
       preference_id: mpResponse.id,
       init_point: mpResponse.init_point,
@@ -459,15 +520,15 @@ app.post('/inscricoes', async (req, res) => {
       forma_pagamento: formaPagamento
     });
   } catch (err) {
-    console.error('Erro ao salvar inscrição:', err);
-    res.status(500).json({ message: 'Erro ao salvar inscrição' });
+    console.error("Erro ao salvar inscrição:", err);
+    res.status(500).json({ message: "Erro ao salvar inscrição" });
   }
 });
 
 // ROTAS DO MERCADO PAGO
 
 // Rota para criar preferência de pagamento (genérica)
-app.post('/mercadopago/create-preference', async (req, res) => {
+app.post("/mercadopago/create-preference", async (req, res) => {
   try {
     const { title, price, quantity, description, buyerInfo, externalReference, inscricaoId } = req.body;
     
@@ -477,10 +538,10 @@ app.post('/mercadopago/create-preference', async (req, res) => {
     const preferenceBody = {
       items: [
         {
-          title: title || 'Inscrição Brothers Cup',
+          title: title || "Inscrição Brothers Cup",
           unit_price: parseFloat(price) || 250,
           quantity: parseInt(quantity) || 1,
-          description: description || title || 'Inscrição Brothers Cup',
+          description: description || title || "Inscrição Brothers Cup",
         },
       ],
       back_urls: {
@@ -499,7 +560,6 @@ app.post('/mercadopago/create-preference', async (req, res) => {
       statement_descriptor: "BROTHERS CUP",
     };
 
-    // Adicionar informações do comprador se fornecidas
     if (buyerInfo) {
       preferenceBody.payer = {
         name: buyerInfo.name,
@@ -518,12 +578,11 @@ app.post('/mercadopago/create-preference', async (req, res) => {
 
     const mpResponse = await preference.create({ body: preferenceBody });
     
-    // Salvar preferência na tabela payment_preferences (se existir)
     try {
       await savePreferenceToPaymentPreferences({
         preference_id: mpResponse.id,
         external_reference: externalRef,
-        title: title || 'Inscrição Brothers Cup',
+        title: title || "Inscrição Brothers Cup",
         amount: parseFloat(price) * parseInt(quantity || 1) || 250,
         status: "pending",
         created_at: new Date()
@@ -532,12 +591,11 @@ app.post('/mercadopago/create-preference', async (req, res) => {
       console.warn("Tabela payment_preferences não existe ou erro ao salvar:", error.message);
     }
 
-    // Atualizar a tabela 'inscricoes' se inscricaoId foi fornecido
     if (inscricaoId) {
       await updateInscricaoPaymentStatus(
         inscricaoId,
         mpResponse.id,
-        null, // payment_id será atualizado pelo webhook
+        null,
         "pending"
       );
     }
@@ -549,35 +607,36 @@ app.post('/mercadopago/create-preference', async (req, res) => {
       external_reference: externalRef,
     });
   } catch (error) {
-    console.error('Erro na rota create-preference:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error("Erro na rota create-preference:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
 
 // Rota de feedback após pagamento
-app.get('/mercadopago/feedback', async (req, res) => {
+app.get("/mercadopago/feedback", async (req, res) => {
   const { payment_id, status, merchant_order_id, external_reference } = req.query;
   
   console.log("Feedback recebido:", { payment_id, status, merchant_order_id, external_reference });
   
-  // Redirecionar para o frontend com os parâmetros
-  const frontendUrl = process.env.FRONTEND_URL;
+  const frontendUrl = process.env.FRONTEND_URL || "https://www.brotherscup.com.br";
   const redirectUrl = `${frontendUrl}/payment-result?payment_id=${payment_id}&status=${status}&external_reference=${external_reference}`;
   
   res.redirect(redirectUrl);
 });
-
-// Rota de webhook para notificações do Mercado Pago
-app.post('/mercadopago/webhook', async (req, res) => {
+app.get("/mercadopago/webhook", (req, res) => {
+  console.log("✅ Requisição GET recebida no webhook. Retornando 200 OK para validação.");
+  res.status(200).send("OK");
+});
+// Rota de webhook para notificações do Mercado Pago - ATUALIZADA
+app.post("/mercadopago/webhook", async (req, res) => {
   try {
     const { type, data } = req.body;
     
-    console.log("Webhook recebido:", { type, data });
+    console.log("🔔 Webhook recebido:", { type, data });
     
     if (type === "payment") {
-      console.log("Notificação de pagamento:", data.id);
+      console.log("💳 Notificação de pagamento:", data.id);
       
-      // Buscar detalhes completos do pagamento
       const payment = await paymentApi.get({ id: data.id });
       
       const paymentData = {
@@ -595,38 +654,44 @@ app.post('/mercadopago/webhook', async (req, res) => {
         },
       };
       
-      // Atualizar na tabela payment_preferences (se existir)
+      console.log(`💰 Pagamento ${paymentData.id}: Status=${paymentData.status}, Valor=${paymentData.transaction_amount}`);
+      
       try {
         await updatePaymentInPaymentPreferences(paymentData);
       } catch (error) {
         console.warn("Tabela payment_preferences não existe ou erro ao atualizar:", error.message);
       }
       
-      // Buscar a inscrição associada via external_reference
       const inscricao = await getInscricaoByExternalReference(paymentData.external_reference);
 
       if (inscricao) {
-        // Atualizar a tabela 'inscricoes'
+        await gerenciarVagasPorStatusPagamento(
+          paymentData.external_reference,
+          paymentData.status
+        );
+
         await updateInscricaoPaymentStatus(
           inscricao.id,
-          inscricao.preference_id, // Mantém o preference_id existente
+          inscricao.preference_id,
           paymentData.id,
           paymentData.status
         );
+
+        console.log(`✅ Inscrição ${inscricao.id} atualizada com status: ${paymentData.status}`);
       } else {
-        console.warn(`Inscrição não encontrada para external_reference: ${paymentData.external_reference}`);
+        console.warn(`⚠️  Inscrição não encontrada para external_reference: ${paymentData.external_reference}`);
       }
     }
     
     res.status(200).send("OK");
   } catch (error) {
-    console.error('Erro na rota webhook:', error);
+    console.error("❌ Erro na rota webhook:", error);
     res.status(500).send("Error");
   }
 });
 
 // Rota para consultar pagamento
-app.get('/mercadopago/payment/:id', async (req, res) => {
+app.get("/mercadopago/payment/:id", async (req, res) => {
   try {
     const payment = await paymentApi.get({ id: req.params.id });
     
@@ -645,15 +710,15 @@ app.get('/mercadopago/payment/:id', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Erro na rota payment:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error("Erro na rota payment:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
 
 // ROTAS PROTEGIDAS (requerem autenticação)
 
 // Rota para listar todas as inscrições (PROTEGIDA)
-app.get('/inscricoes', authenticateToken, authorizeRoles(['admin', 'editor', 'viewer']), async (req, res) => {
+app.get("/inscricoes", authenticateToken, authorizeRoles(["admin", "editor", "viewer"]), async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -678,13 +743,13 @@ app.get('/inscricoes', authenticateToken, authorizeRoles(['admin', 'editor', 'vi
 
     res.status(200).json(result.rows);
   } catch (err) {
-    console.error('Erro ao buscar inscrições:', err);
-    res.status(500).json({ message: 'Erro ao buscar inscrições' });
+    console.error("Erro ao buscar inscrições:", err);
+    res.status(500).json({ message: "Erro ao buscar inscrições" });
   }
 });
 
 // Rota para listar pagamentos (protegida)
-app.get('/mercadopago/payments', authenticateToken, async (req, res) => {
+app.get("/mercadopago/payments", authenticateToken, async (req, res) => {
   try {
     const { status, limit } = req.query;
     let query = "SELECT * FROM payment_preferences WHERE 1=1";
@@ -707,195 +772,198 @@ app.get('/mercadopago/payments', authenticateToken, async (req, res) => {
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
-    console.error('Erro na rota payments:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error("Erro na rota payments:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
 
 // Rota para excluir uma inscrição (PROTEGIDA - apenas admin)
-app.delete('/inscricao/:id', authenticateToken, authorizeRoles(['admin']), async (req, res) => {
+app.delete("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
   const { id } = req.params;
   
   try {
-    // Verificar se a inscrição existe e obter a categoria
-    const checkResult = await pool.query('SELECT categoria FROM inscricoes WHERE id = $1', [id]);
+    const checkResult = await pool.query("SELECT categoria, status_pagamento FROM inscricoes WHERE id = $1", [id]);
     
     if (checkResult.rowCount === 0) {
-      return res.status(404).json({ message: 'Inscrição não encontrada' });
+      return res.status(404).json({ message: "Inscrição não encontrada" });
     }
 
-    const categoria = checkResult.rows[0].categoria;
+    const { categoria, status_pagamento } = checkResult.rows[0];
 
-    // Excluir a inscrição
-    await pool.query('DELETE FROM inscricoes WHERE id = $1', [id]);
-    
-    // Decrementar vagas_ocupadas na categoria
-    await pool.query(
-      `UPDATE categorias SET vagas_ocupadas = vagas_ocupadas - 1 
-       WHERE nome = $1 AND vagas_ocupadas > 0`,
-      [categoria]
-    );
+    const deleteResult = await pool.query("DELETE FROM inscricoes WHERE id = $1", [id]);
 
-    console.log(`🗑️  Inscrição excluída: ID ${id} - Categoria: ${categoria} - Por: ${req.user.username}`);
-
-    res.status(200).json({ message: 'Inscrição excluída com sucesso' });
+    if (deleteResult.rowCount > 0) {
+      if (status_pagamento === "approved") {
+        await pool.query(
+          `UPDATE categorias SET vagas_ocupadas = GREATEST(0, vagas_ocupadas - 1) WHERE nome = $1`,
+          [categoria]
+        );
+        console.log(`Vaga liberada na categoria ${categoria} após exclusão da inscrição ${id}`);
+      }
+      res.status(200).json({ message: "Inscrição excluída com sucesso" });
+    } else {
+      res.status(404).json({ message: "Inscrição não encontrada" });
+    }
   } catch (err) {
-    console.error('Erro ao excluir inscrição:', err);
-    res.status(500).json({ message: 'Erro ao excluir inscrição' });
+    console.error("Erro ao excluir inscrição:", err);
+    res.status(500).json({ message: "Erro ao excluir inscrição" });
   }
 });
 
-// Rota para atualizar uma inscrição (PROTEGIDA - admin e editor)
-app.put('/inscricao/:id', authenticateToken, authorizeRoles(['admin', 'editor']), async (req, res) => {
+// Rota para atualizar uma inscrição (PROTEGIDA - apenas admin ou editor)
+app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin", "editor"]), async (req, res) => {
   const { id } = req.params;
   const { 
     representante, 
     parceiro, 
     instagramRepresentante, 
     instagramParceiro, 
-    ctRepresentante, 
-    ctParceiro, 
+    uniformeRepresentante, 
+    uniformeParceiro, 
     categoria, 
-    status_pagamento, 
+    ctRepresentante, 
+    ctParceiro,
     celular,
-    uniformeRepresentante,
-    uniformeParceiro
+    status_pagamento
   } = req.body;
 
   try {
-    // Validação básica
-    if (!representante || !parceiro || !categoria) {
-      return res.status(400).json({ message: 'Campos obrigatórios ausentes' });
-    }
+    const updateFields = [];
+    const updateValues = [];
+    let paramCount = 1;
 
-    // Verificar se a inscrição existe
-    const checkResult = await pool.query('SELECT categoria FROM inscricoes WHERE id = $1', [id]);
-    
-    if (checkResult.rowCount === 0) {
-      return res.status(404).json({ message: 'Inscrição não encontrada' });
-    }
+    if (representante) { updateFields.push(`representante = $${paramCount++}`); updateValues.push(representante); }
+    if (parceiro) { updateFields.push(`parceiro = $${paramCount++}`); updateValues.push(parceiro); }
+    if (instagramRepresentante) { updateFields.push(`instagram_representante = $${paramCount++}`); updateValues.push(instagramRepresentante); }
+    if (instagramParceiro) { updateFields.push(`instagram_parceiro = $${paramCount++}`); updateValues.push(instagramParceiro); }
+    if (uniformeRepresentante) { updateFields.push(`uniforme_representante = $${paramCount++}`); updateValues.push(uniformeRepresentante); }
+    if (uniformeParceiro) { updateFields.push(`uniforme_parceiro = $${paramCount++}`); updateValues.push(uniformeParceiro); }
+    if (categoria) { updateFields.push(`categoria = $${paramCount++}`); updateValues.push(categoria); }
+    if (ctRepresentante) { updateFields.push(`ct_representante = $${paramCount++}`); updateValues.push(ctRepresentante); }
+    if (ctParceiro) { updateFields.push(`ct_parceiro = $${paramCount++}`); updateValues.push(ctParceiro); }
+    if (celular) { updateFields.push(`celular = $${paramCount++}`); updateValues.push(celular); }
 
-    const categoriaAnterior = checkResult.rows[0].categoria;
-
-    // Atualizar a inscrição
-    const result = await pool.query(
-      `UPDATE inscricoes 
-       SET representante = $1, 
-           parceiro = $2, 
-           instagram_representante = $3, 
-           instagram_parceiro = $4, 
-           ct_representante = $5, 
-           ct_parceiro = $6, 
-           categoria = $7, 
-           status_pagamento = $8, 
-           celular = $9,
-           uniforme_representante = $10,
-           uniforme_parceiro = $11
-       WHERE id = $12 
-       RETURNING *`,
-      [
-        representante, 
-        parceiro, 
-        instagramRepresentante, 
-        instagramParceiro, 
-        ctRepresentante, 
-        ctParceiro, 
-        categoria, 
-        status_pagamento, 
-        celular,
-        uniformeRepresentante,
-        uniformeParceiro,
-        id
-      ]
-    );
-
-    // Se a categoria mudou, ajustar contadores
-    if (categoriaAnterior !== categoria) {
-      // Decrementar da categoria anterior
-      await pool.query(
-        `UPDATE categorias SET vagas_ocupadas = vagas_ocupadas - 1 
-         WHERE nome = $1 AND vagas_ocupadas > 0`,
-        [categoriaAnterior]
+    if (status_pagamento) {
+      const oldInscricaoResult = await pool.query(
+        "SELECT status_pagamento, categoria FROM inscricoes WHERE id = $1",
+        [id]
       );
-      
-      // Incrementar na nova categoria
-      await pool.query(
-        `UPDATE categorias SET vagas_ocupadas = vagas_ocupadas + 1 
-         WHERE nome = $1`,
-        [categoria]
-      );
+      const oldStatus = oldInscricaoResult.rows[0]?.status_pagamento;
+      const oldCategoria = oldInscricaoResult.rows[0]?.categoria;
+
+      if (oldStatus !== status_pagamento) {
+        await gerenciarVagasPorStatusPagamento(`inscricao_${id}`, status_pagamento, oldStatus);
+      }
+      updateFields.push(`status_pagamento = $${paramCount++}`); updateValues.push(status_pagamento);
     }
 
-    console.log(`✏️  Inscrição atualizada: ID ${id} - Por: ${req.user.username}`);
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "Nenhum campo para atualizar" });
+    }
 
-    res.status(200).json({ 
-      message: 'Inscrição atualizada com sucesso', 
-      inscricao: result.rows[0] 
-    });
-  } catch (err) {
-    console.error('Erro ao atualizar inscrição:', err);
-    res.status(500).json({ message: 'Erro ao atualizar inscrição' });
-  }
-});
+    const query = `UPDATE inscricoes SET ${updateFields.join(", ")} WHERE id = $${paramCount} RETURNING *`;
+    updateValues.push(id);
 
-// Rota para atualizar o status do pagamento (PROTEGIDA)
-app.post('/atualizar_pagamento', authenticateToken, authorizeRoles(['admin', 'editor']), async (req, res) => {
-  const { id, status_pagamento, preference_id, payment_id } = req.body;
-
-  try {
-    const result = await pool.query(
-      `UPDATE inscricoes SET status_pagamento = $1, preference_id = $2, payment_id = $3 WHERE id = $4`,
-      [status_pagamento, preference_id, payment_id, id]
-    );
+    const result = await pool.query(query, updateValues);
 
     if (result.rowCount > 0) {
-      console.log(`💳 Pagamento atualizado: ID ${id} - Status: ${status_pagamento} - Por: ${req.user.username}`);
-      res.status(200).json({ message: 'Pagamento atualizado com sucesso' });
+      res.status(200).json({ message: "Inscrição atualizada com sucesso", inscricao: result.rows[0] });
     } else {
-      res.status(404).json({ message: 'Inscrição não encontrada' });
+      res.status(404).json({ message: "Inscrição não encontrada" });
     }
   } catch (err) {
-    console.error('Erro ao atualizar pagamento:', err);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error("Erro ao atualizar inscrição:", err);
+    res.status(500).json({ message: "Erro ao atualizar inscrição" });
   }
 });
 
-// Middleware de tratamento de erros global
+// Rota para listar todas as categorias (PROTEGIDA)
+app.get("/categorias", authenticateToken, authorizeRoles(["admin", "editor", "viewer"]), async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM categorias ORDER BY nome");
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Erro ao buscar categorias:", err);
+    res.status(500).json({ message: "Erro ao buscar categorias" });
+  }
+});
+
+// Rota para criar uma nova categoria (PROTEGIDA - apenas admin)
+app.post("/categorias", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
+  const { nome, vagas_totais } = req.body;
+  try {
+    if (!nome || vagas_totais === undefined) {
+      return res.status(400).json({ message: "Nome e vagas_totais são obrigatórios" });
+    }
+    const result = await pool.query(
+      "INSERT INTO categorias (nome, vagas_totais, vagas_ocupadas) VALUES ($1, $2, 0) RETURNING *",
+      [nome, vagas_totais]
+    );
+    res.status(201).json({ message: "Categoria criada com sucesso", categoria: result.rows[0] });
+  } catch (err) {
+    console.error("Erro ao criar categoria:", err);
+    res.status(500).json({ message: "Erro ao criar categoria" });
+  }
+});
+
+// Rota para atualizar uma categoria (PROTEGIDA - apenas admin ou editor)
+app.put("/categorias/:nome", authenticateToken, authorizeRoles(["admin", "editor"]), async (req, res) => {
+  const { nome } = req.params;
+  const { vagas_totais, vagas_ocupadas } = req.body;
+  try {
+    const updateFields = [];
+    const updateValues = [];
+    let paramCount = 1;
+
+    if (vagas_totais !== undefined) { updateFields.push(`vagas_totais = $${paramCount++}`); updateValues.push(vagas_totais); }
+    if (vagas_ocupadas !== undefined) { updateFields.push(`vagas_ocupadas = $${paramCount++}`); updateValues.push(vagas_ocupadas); }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "Nenhum campo para atualizar" });
+    }
+
+    const query = `UPDATE categorias SET ${updateFields.join(", ")} WHERE nome = $${paramCount} RETURNING *`;
+    updateValues.push(nome);
+
+    const result = await pool.query(query, updateValues);
+
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: "Categoria atualizada com sucesso", categoria: result.rows[0] });
+    } else {
+      res.status(404).json({ message: "Categoria não encontrada" });
+    }
+  } catch (err) {
+    console.error("Erro ao atualizar categoria:", err);
+    res.status(500).json({ message: "Erro ao atualizar categoria" });
+  }
+});
+
+// Rota para excluir uma categoria (PROTEGIDA - apenas admin)
+app.delete("/categorias/:nome", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
+  const { nome } = req.params;
+  try {
+    const result = await pool.query("DELETE FROM categorias WHERE nome = $1", [nome]);
+    if (result.rowCount > 0) {
+      res.status(200).json({ message: "Categoria excluída com sucesso" });
+    } else {
+      res.status(404).json({ message: "Categoria não encontrada" });
+    }
+  } catch (err) {
+    console.error("Erro ao excluir categoria:", err);
+    res.status(500).json({ message: "Erro ao excluir categoria" });
+  }
+});
+
+// Middleware de tratamento de erros
 app.use((err, req, res, next) => {
-  console.error('Erro não tratado:', err);
-  res.status(500).json({ message: 'Erro interno do servidor' });
+  console.error(err.stack);
+  res.status(500).send("Algo deu errado!");
 });
 
-// Middleware para rotas não encontradas
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Rota não encontrada' });
-});
-
+// Iniciar o servidor
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`🔐 Modo de segurança: ${process.env.NODE_ENV || 'development'}`);
-  console.log('🔗 Rotas do Mercado Pago disponíveis em /mercadopago/*');
-  
-  if (!process.env.JWT_SECRET) {
-    console.warn('⚠️  AVISO: JWT_SECRET não definido. Use uma chave segura em produção!');
-  }
-  
-  if (!process.env.ADMIN_PASSWORD_HASH) {
-    console.warn('⚠️  AVISO: ADMIN_PASSWORD_HASH não definido. Defina uma senha segura em produção!');
-  }
-
-  if (!process.env.MP_ACCESS_TOKEN) {
-    console.warn('⚠️  ATENÇÃO: MP_ACCESS_TOKEN não está configurado!');
-  } else {
-    console.log('✅ Mercado Pago configurado com sucesso!');
-  }
-
-  if (!process.env.BACKEND_URL) {
-    console.warn('⚠️  ATENÇÃO: BACKEND_URL não está configurado! Webhooks podem não funcionar.');
-  } else {
-    console.log(`🔗 Webhook URL configurada: ${process.env.BACKEND_URL}/mercadopago/webhook`);
-  }
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
+
 
