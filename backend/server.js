@@ -465,7 +465,7 @@ app.post("/inscricoes", async (req, res) => {
     const preferenceBody = {
       items: [
         {
-          title: `Inscrição Brothers Cup - ${representante}`,
+          title: `Inscrição Brothers Cup - ${representante} - ${parceiro} - ${categoria} `,
           unit_price: parseFloat(valorInscricao),
           quantity: 1,
           description: `Inscrição para a categoria ${categoria} - Pagamento via ${formaPagamento.toUpperCase()}`,
@@ -638,6 +638,7 @@ app.post("/mercadopago/webhook", async (req, res) => {
       console.log("💳 Notificação de pagamento:", data.id);
       
       const payment = await paymentApi.get({ id: data.id });
+      console.log("Detalhes do status do pagamento:", payment.status_detail);
       
       const paymentData = {
         id: payment.id,
