@@ -290,6 +290,7 @@ app.get('/vagas/:categoria', async (req, res) => {
 });
 
 // Rota para criar a inscrição (pública) - INTEGRADA COM MERCADO PAGO
+// Rota para criar a inscrição (pública) - INTEGRADA COM MERCADO PAGO
 app.post('/inscricoes', async (req, res) => {
   const { 
     representante, 
@@ -302,7 +303,8 @@ app.post('/inscricoes', async (req, res) => {
     ctRepresentante, 
     ctParceiro,
     celular,
-    valor_inscricao // Adicionar valor da inscrição
+    valor_inscricao, // Valor da inscrição
+    forma_pagamento // Forma de pagamento (pix ou cartao)
   } = req.body;
 
   try {
@@ -313,6 +315,9 @@ app.post('/inscricoes', async (req, res) => {
 
     // Usar valor padrão se não fornecido
     const valorInscricao = valor_inscricao || 250;
+    const formaPagamento = forma_pagamento || 'pix';
+
+    console.log(`💰 Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
 
     // Verificar se há vagas disponíveis
     const vagasRes = await pool.query(
@@ -365,13 +370,37 @@ app.post('/inscricoes', async (req, res) => {
     const baseUrl = process.env.BACKEND_URL;
     const externalRef = `inscricao_${inscricaoId}`;
 
+    // Configurar métodos de pagamento baseado na forma selecionada
+    let paymentMethods = {
+      excluded_payment_methods: [],
+      excluded_payment_types: [],
+      installments: 12,
+    };
+
+    if (formaPagamento === 'pix') {
+      // Para PIX: excluir cartões de crédito e débito
+      paymentMethods.excluded_payment_types = [
+        { id: "credit_card" },
+        { id: "debit_card" },
+        { id: "prepaid_card" }
+      ];
+      paymentMethods.installments = 1; // PIX não tem parcelamento
+    } else if (formaPagamento === 'cartao') {
+      // Para Cartão: excluir PIX e outros métodos
+      paymentMethods.excluded_payment_types = [
+        { id: "bank_transfer" }, // PIX
+        { id: "ticket" }, // Boleto
+        { id: "atm" }
+      ];
+    }
+
     const preferenceBody = {
       items: [
         {
           title: `Inscrição Brothers Cup - ${representante}`,
           unit_price: parseFloat(valorInscricao),
           quantity: 1,
-          description: `Inscrição para a categoria ${categoria}`,
+          description: `Inscrição para a categoria ${categoria} - Pagamento via ${formaPagamento.toUpperCase()}`,
         },
       ],
       back_urls: {
@@ -380,15 +409,13 @@ app.post('/inscricoes', async (req, res) => {
         pending: "https://www.brotherscup.com.br/pendente",
       },
       auto_return: "approved",
-      payment_methods: {
-        excluded_payment_methods: [],
-        excluded_payment_types: [],
-        installments: 12,
-      },
+      payment_methods: paymentMethods,
       notification_url: `${baseUrl}/mercadopago/webhook`,
       external_reference: externalRef,
       statement_descriptor: "BROTHERS CUP",
     };
+
+    console.log('🔧 Configuração de pagamento:', JSON.stringify(paymentMethods, null, 2));
 
     const mpResponse = await preference.create({ body: preferenceBody });
 
@@ -420,14 +447,16 @@ app.post('/inscricoes', async (req, res) => {
       [categoria]
     );
 
-    console.log(`✅ Nova inscrição criada: ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria}`);
+    console.log(`✅ Nova inscrição criada: ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
 
     res.status(200).json({ 
       id: inscricaoId,
       preference_id: mpResponse.id,
       init_point: mpResponse.init_point,
       sandbox_init_point: mpResponse.sandbox_init_point,
-      external_reference: externalRef
+      external_reference: externalRef,
+      valor: valorInscricao,
+      forma_pagamento: formaPagamento
     });
   } catch (err) {
     console.error('Erro ao salvar inscrição:', err);

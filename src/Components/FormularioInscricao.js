@@ -9,6 +9,7 @@ import "../styles/formularioinscricao.css";
 function FormularioInscricao() {
   const [vagasRestantes, setVagasRestantes] = useState(null);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+  const [formaPagamento, setFormaPagamento] = useState('pix'); // Restaurando forma de pagamento
   const [segundaInscricao, setSegundaInscricao] = useState(false);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
 
@@ -58,9 +59,30 @@ function FormularioInscricao() {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
+  // Função para calcular o valor baseado na forma de pagamento
+  const getValorInscricao = () => {
+    return formaPagamento === 'cartao' ? 260 : 250;
+  };
+
+  // Função para verificar se o botão deve estar desabilitado
+  const isBotaoDesabilitado = () => {
+    return isSubmitting || isCategoriaSemVagas || segundaInscricao;
+  };
+
+  // Função para obter a mensagem de status do botão
+  const getMensagemStatus = () => {
+    if (segundaInscricao) {
+      return "Para sua segunda inscrição, nos chame no direct!";
+    }
+    if (isCategoriaSemVagas) {
+      return "Não há mais vagas nesta categoria.";
+    }
+    return null;
+  };
+
   const handleSubmit = async () => {
-    // Se já estiver enviando a inscrição, retorna
-    if (isSubmitting) return;
+    // Se já estiver enviando a inscrição ou botão desabilitado, retorna
+    if (isBotaoDesabilitado()) return;
     setIsSubmitting(true);
 
     // Validação dos campos obrigatórios
@@ -97,14 +119,20 @@ function FormularioInscricao() {
     }
 
     try {
+      // Preparar dados para envio incluindo forma de pagamento e valor
+      const dadosParaEnvio = {
+        ...formData,
+        forma_pagamento: formaPagamento,
+        valor_inscricao: getValorInscricao()
+      };
+
+      console.log('Dados sendo enviados:', dadosParaEnvio); // Para debug
+
       // ÚNICA REQUISIÇÃO: Enviar a inscrição (que já cria a preferência automaticamente)
       const inscricaoRes = await fetch(`${BACKEND_URL}/inscricoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          valor_inscricao: 250 // Adicionar o valor da inscrição
-        }),
+        body: JSON.stringify(dadosParaEnvio),
       });
 
       if (inscricaoRes.ok) {
@@ -150,6 +178,7 @@ function FormularioInscricao() {
         setCategoriaSelecionada("");
         setVagasRestantes(null);
         setSegundaInscricao(false);
+        setFormaPagamento('pix');
         
       } else {
         const errorData = await inscricaoRes.json();
@@ -370,6 +399,26 @@ function FormularioInscricao() {
             </div>
           </div>
 
+          {/* Forma de Pagamento */}
+          <div className='modal-separado'>
+            <p className='titulo-inscricao'>Forma de Pagamento</p>
+            <select
+              className='input'
+              name='formaPagamento'
+              value={formaPagamento}
+              onChange={(e) => setFormaPagamento(e.target.value)}
+            >
+              <option value="pix">PIX - R$ 250,00</option>
+              <option value="cartao">Cartão de Crédito - R$ 260,00</option>
+            </select>
+            <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>
+              {formaPagamento === 'pix' 
+                ? 'Pagamento via PIX: R$ 250,00' 
+                : 'Pagamento via Cartão de Crédito: R$ 260,00'
+              }
+            </p>
+          </div>
+
           {/* Segunda Inscrição */}
           <div className="modal-separado">
             <div className="checkbox-wrapper">
@@ -426,13 +475,20 @@ function FormularioInscricao() {
           {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
           {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
 
+          {/* Mensagem de status do botão */}
+          {getMensagemStatus() && (
+            <p style={{ color: 'red', marginTop: '10px', fontWeight: 'bold' }}>
+              {getMensagemStatus()}
+            </p>
+          )}
+
           {/* Botão de submissão */}
           <div className="modal-separado">
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isSubmitting || isCategoriaSemVagas}
-              className={`botao-inscricao ${isSubmitting ? 'botao-carregando' : ''} ${isCategoriaSemVagas ? 'botao-desabilitado' : ''}`}
+              disabled={isBotaoDesabilitado()}
+              className={`botao-inscricao ${isSubmitting ? 'botao-carregando' : ''} ${isBotaoDesabilitado() ? 'botao-desabilitado' : ''}`}
             >
               {isSubmitting ? 'Processando...' : 'Finalizar Inscrição'}
             </button>
