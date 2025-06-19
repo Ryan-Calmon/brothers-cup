@@ -4,51 +4,23 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { MercadoPagoConfig, Preference, Payment } = require('mercadopago'); // Importa MercadoPagoConfig e outros módulos
 require('dotenv').config(); // Para carregar variáveis de ambiente
-import { MercadoPagoConfig, Preference } from 'mercadopago';
 
-app.post('/mercadopago/create-preference', async (req, res) => {
-  const { title, price, quantity } = req.body;  // Recebe os dados do frontend (ex: título, preço, quantidade)
-
-  const preference = new Preference(client);
-  
-  try {
-    const response = await preference.create({
-      body: {
-        items: [
-          {
-            title: 'Inscrição Brothers Cup',
-            unit_price: 250,
-            quantity: 1,
-          },
-        ],
-        back_urls: {
-          success: "https://www.brotherscup.com.br/successo",
-          failure: "http://www.brotherscup.com.br/falhou",
-          pending: "http://www.brotherscup.com.br/pendente",
-        },
-        auto_return: "approved", // Configuração do retorno automático após o pagamento
-        notification_url: `${process.env.BACKEND_URL}/mercadopago/webhook`, // URL para receber notificações de pagamento
-      }
-    });
-
-    // Retornar o preferenceId
-    res.json({ preferenceId: response.body.id });
-  } catch (error) {
-    console.error('Erro ao criar preferência:', error);
-    res.status(500).json({ message: 'Erro ao criar preferência' });
-  }
-});
-
-
-const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 const app = express();
 const frontendURL = process.env.FRONTEND_URL;
-// Configuração de CORS para permitir requisições do frontend
+
+// Configuração de CORS mais permissiva para resolver problemas de preflight
 app.use(cors({
-  origin: frontendURL, // URL do frontend
-  credentials: true
+  origin: [frontendURL, 'https://www.brotherscup.com.br', 'http://localhost:3000'], // Múltiplas origens permitidas
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // Para suporte a navegadores legados
 }));
+
+// Middleware adicional para lidar com preflight requests
+app.options('*', cors());
 
 // Configuração da conexão com o PostgreSQL
 const pool = new Pool({
@@ -59,12 +31,21 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+// Inicializa o cliente do Mercado Pago
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN,
+});
+
+// Inicializa os objetos de API do Mercado Pago
+const preference = new Preference(client);
+const paymentApi = new Payment(client);
+
 // Middleware para parsear JSON
 app.use(bodyParser.json());
 
 // Configurações de segurança
 const JWT_SECRET = process.env.JWT_SECRET;
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH; // Hash da senha do admin
 
 // Se não houver hash da senha definido, criar um hash padrão (APENAS PARA DESENVOLVIMENTO)
@@ -126,6 +107,97 @@ const rateLimitLogin = (req, res, next) => {
     }
   }
   next();
+};
+
+// FUNÇÕES AUXILIARES DO MERCADO PAGO
+
+// Função para atualizar status de pagamento na tabela inscricoes
+const updateInscricaoPaymentStatus = async (inscricaoId, preferenceId, paymentId, status) => {
+  try {
+    const query = `
+      UPDATE inscricoes
+      SET status_pagamento = $1,
+          preference_id = $2,
+          payment_id = $3
+      WHERE id = $4
+    `;
+    await pool.query(query, [status, preferenceId, paymentId, inscricaoId]);
+    console.log(`Inscrição ${inscricaoId} atualizada: status=${status}, preference_id=${preferenceId}, payment_id=${paymentId}`);
+  } catch (error) {
+    console.error("Erro ao atualizar status de pagamento na tabela inscricoes:", error);
+  }
+};
+
+// Função para salvar preferência na tabela payment_preferences
+const savePreferenceToPaymentPreferences = async (preferenceData) => {
+  try {
+    const query = `
+      INSERT INTO payment_preferences (preference_id, external_reference, title, amount, status, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT (preference_id) DO UPDATE SET
+      status = EXCLUDED.status,
+      updated_at = NOW()
+    `;
+    
+    await pool.query(query, [
+      preferenceData.preference_id,
+      preferenceData.external_reference,
+      preferenceData.title,
+      preferenceData.amount,
+      preferenceData.status,
+      preferenceData.created_at
+    ]);
+  } catch (error) {
+    console.error("Erro ao salvar preferência em payment_preferences:", error);
+  }
+};
+
+// Função para buscar inscrição por external_reference
+const getInscricaoByExternalReference = async (externalReference) => {
+  try {
+    const query = `
+      SELECT id, preference_id
+      FROM inscricoes
+      WHERE external_reference = $1
+    `;
+    const result = await pool.query(query, [externalReference]);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error("Erro ao buscar inscrição por external_reference:", error);
+    return null;
+  }
+};
+
+// Função para atualizar pagamento na tabela payment_preferences
+const updatePaymentInPaymentPreferences = async (paymentData) => {
+  try {
+    const query = `
+      UPDATE payment_preferences 
+      SET 
+        payment_id = $1,
+        status = $2,
+        payment_status_detail = $3,
+        transaction_amount = $4,
+        date_approved = $5,
+        payer_email = $6,
+        updated_at = NOW()
+      WHERE external_reference = $7
+    `;
+    
+    await pool.query(query, [
+      paymentData.id,
+      paymentData.status,
+      paymentData.status_detail,
+      paymentData.transaction_amount,
+      paymentData.date_approved,
+      paymentData.payer?.email,
+      paymentData.external_reference
+    ]);
+
+    console.log(`Pagamento ${paymentData.id} atualizado em payment_preferences`);
+  } catch (error) {
+    console.error("Erro ao atualizar pagamento em payment_preferences:", error);
+  }
 };
 
 // ROTAS DE AUTENTICAÇÃO
@@ -217,7 +289,7 @@ app.get('/vagas/:categoria', async (req, res) => {
   }
 });
 
-// Rota para criar a inscrição (pública)
+// Rota para criar a inscrição (pública) - INTEGRADA COM MERCADO PAGO
 app.post('/inscricoes', async (req, res) => {
   const { 
     representante, 
@@ -229,7 +301,8 @@ app.post('/inscricoes', async (req, res) => {
     categoria, 
     ctRepresentante, 
     ctParceiro,
-    celular 
+    celular,
+    valor_inscricao // Adicionar valor da inscrição
   } = req.body;
 
   try {
@@ -237,6 +310,9 @@ app.post('/inscricoes', async (req, res) => {
     if (!representante || !parceiro || !categoria || !celular) {
       return res.status(400).json({ message: 'Campos obrigatórios ausentes' });
     }
+
+    // Usar valor padrão se não fornecido
+    const valorInscricao = valor_inscricao || 250;
 
     // Verificar se há vagas disponíveis
     const vagasRes = await pool.query(
@@ -265,8 +341,9 @@ app.post('/inscricoes', async (req, res) => {
         categoria, 
         ct_representante, 
         ct_parceiro,
-        celular
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+        celular,
+        status_pagamento
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
       [
         representante, 
         parceiro, 
@@ -277,11 +354,65 @@ app.post('/inscricoes', async (req, res) => {
         categoria, 
         ctRepresentante, 
         ctParceiro,
-        celular
+        celular,
+        'pending' // Status inicial como pendente
       ]
     );
 
-    const idInscricao = result.rows[0].id;
+    const inscricaoId = result.rows[0].id;
+
+    // Criar preferência de pagamento no Mercado Pago
+    const baseUrl = process.env.BACKEND_URL;
+    const externalRef = `inscricao_${inscricaoId}`;
+
+    const preferenceBody = {
+      items: [
+        {
+          title: `Inscrição Brothers Cup - ${representante}`,
+          unit_price: parseFloat(valorInscricao),
+          quantity: 1,
+          description: `Inscrição para a categoria ${categoria}`,
+        },
+      ],
+      back_urls: {
+        success: "https://www.brotherscup.com.br/successo",
+        failure: "https://www.brotherscup.com.br/falhou",
+        pending: "https://www.brotherscup.com.br/pendente",
+      },
+      auto_return: "approved",
+      payment_methods: {
+        excluded_payment_methods: [],
+        excluded_payment_types: [],
+        installments: 12,
+      },
+      notification_url: `${baseUrl}/mercadopago/webhook`,
+      external_reference: externalRef,
+      statement_descriptor: "BROTHERS CUP",
+    };
+
+    const mpResponse = await preference.create({ body: preferenceBody });
+
+    // Salvar preferência na tabela payment_preferences (se existir)
+    try {
+      await savePreferenceToPaymentPreferences({
+        preference_id: mpResponse.id,
+        external_reference: externalRef,
+        title: `Inscrição Brothers Cup - ${representante}`,
+        amount: parseFloat(valorInscricao),
+        status: "pending",
+        created_at: new Date()
+      });
+    } catch (error) {
+      console.warn("Tabela payment_preferences não existe ou erro ao salvar:", error.message);
+    }
+
+    // Atualizar a inscrição com o preference_id
+    await updateInscricaoPaymentStatus(
+      inscricaoId,
+      mpResponse.id,
+      null, // payment_id será atualizado pelo webhook
+      "pending"
+    );
 
     // Atualizar o número de vagas ocupadas
     await pool.query(
@@ -289,12 +420,204 @@ app.post('/inscricoes', async (req, res) => {
       [categoria]
     );
 
-    console.log(`✅ Nova inscrição criada: ID ${idInscricao} - ${representante}/${parceiro} - ${categoria}`);
+    console.log(`✅ Nova inscrição criada: ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria}`);
 
-    res.status(200).json({ id: idInscricao });
+    res.status(200).json({ 
+      id: inscricaoId,
+      preference_id: mpResponse.id,
+      init_point: mpResponse.init_point,
+      sandbox_init_point: mpResponse.sandbox_init_point,
+      external_reference: externalRef
+    });
   } catch (err) {
     console.error('Erro ao salvar inscrição:', err);
     res.status(500).json({ message: 'Erro ao salvar inscrição' });
+  }
+});
+
+// ROTAS DO MERCADO PAGO
+
+// Rota para criar preferência de pagamento (genérica)
+app.post('/mercadopago/create-preference', async (req, res) => {
+  try {
+    const { title, price, quantity, description, buyerInfo, externalReference, inscricaoId } = req.body;
+    
+    const baseUrl = process.env.BACKEND_URL;
+    const externalRef = externalReference || `brothers_cup_order_${Date.now()}`;
+
+    const preferenceBody = {
+      items: [
+        {
+          title: title || 'Inscrição Brothers Cup',
+          unit_price: parseFloat(price) || 250,
+          quantity: parseInt(quantity) || 1,
+          description: description || title || 'Inscrição Brothers Cup',
+        },
+      ],
+      back_urls: {
+        success: "https://www.brotherscup.com.br/successo",
+        failure: "https://www.brotherscup.com.br/falhou",
+        pending: "https://www.brotherscup.com.br/pendente",
+      },
+      auto_return: "approved",
+      payment_methods: {
+        excluded_payment_methods: [],
+        excluded_payment_types: [],
+        installments: 12,
+      },
+      notification_url: `${baseUrl}/mercadopago/webhook`,
+      external_reference: externalRef,
+      statement_descriptor: "BROTHERS CUP",
+    };
+
+    // Adicionar informações do comprador se fornecidas
+    if (buyerInfo) {
+      preferenceBody.payer = {
+        name: buyerInfo.name,
+        surname: buyerInfo.surname,
+        email: buyerInfo.email,
+        phone: buyerInfo.phone ? {
+          area_code: buyerInfo.phone.area_code,
+          number: buyerInfo.phone.number
+        } : undefined,
+        identification: buyerInfo.identification ? {
+          type: buyerInfo.identification.type,
+          number: buyerInfo.identification.number
+        } : undefined,
+      };
+    }
+
+    const mpResponse = await preference.create({ body: preferenceBody });
+    
+    // Salvar preferência na tabela payment_preferences (se existir)
+    try {
+      await savePreferenceToPaymentPreferences({
+        preference_id: mpResponse.id,
+        external_reference: externalRef,
+        title: title || 'Inscrição Brothers Cup',
+        amount: parseFloat(price) * parseInt(quantity || 1) || 250,
+        status: "pending",
+        created_at: new Date()
+      });
+    } catch (error) {
+      console.warn("Tabela payment_preferences não existe ou erro ao salvar:", error.message);
+    }
+
+    // Atualizar a tabela 'inscricoes' se inscricaoId foi fornecido
+    if (inscricaoId) {
+      await updateInscricaoPaymentStatus(
+        inscricaoId,
+        mpResponse.id,
+        null, // payment_id será atualizado pelo webhook
+        "pending"
+      );
+    }
+    
+    res.json({
+      id: mpResponse.id,
+      init_point: mpResponse.init_point,
+      sandbox_init_point: mpResponse.sandbox_init_point,
+      external_reference: externalRef,
+    });
+  } catch (error) {
+    console.error('Erro na rota create-preference:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Rota de feedback após pagamento
+app.get('/mercadopago/feedback', async (req, res) => {
+  const { payment_id, status, merchant_order_id, external_reference } = req.query;
+  
+  console.log("Feedback recebido:", { payment_id, status, merchant_order_id, external_reference });
+  
+  // Redirecionar para o frontend com os parâmetros
+  const frontendUrl = process.env.FRONTEND_URL;
+  const redirectUrl = `${frontendUrl}/payment-result?payment_id=${payment_id}&status=${status}&external_reference=${external_reference}`;
+  
+  res.redirect(redirectUrl);
+});
+
+// Rota de webhook para notificações do Mercado Pago
+app.post('/mercadopago/webhook', async (req, res) => {
+  try {
+    const { type, data } = req.body;
+    
+    console.log("Webhook recebido:", { type, data });
+    
+    if (type === "payment") {
+      console.log("Notificação de pagamento:", data.id);
+      
+      // Buscar detalhes completos do pagamento
+      const payment = await paymentApi.get({ id: data.id });
+      
+      const paymentData = {
+        id: payment.id,
+        status: payment.status,
+        status_detail: payment.status_detail,
+        transaction_amount: payment.transaction_amount,
+        currency_id: payment.currency_id,
+        date_created: payment.date_created,
+        date_approved: payment.date_approved,
+        external_reference: payment.external_reference,
+        payer: {
+          email: payment.payer?.email,
+          identification: payment.payer?.identification,
+        },
+      };
+      
+      // Atualizar na tabela payment_preferences (se existir)
+      try {
+        await updatePaymentInPaymentPreferences(paymentData);
+      } catch (error) {
+        console.warn("Tabela payment_preferences não existe ou erro ao atualizar:", error.message);
+      }
+      
+      // Buscar a inscrição associada via external_reference
+      const inscricao = await getInscricaoByExternalReference(paymentData.external_reference);
+
+      if (inscricao) {
+        // Atualizar a tabela 'inscricoes'
+        await updateInscricaoPaymentStatus(
+          inscricao.id,
+          inscricao.preference_id, // Mantém o preference_id existente
+          paymentData.id,
+          paymentData.status
+        );
+      } else {
+        console.warn(`Inscrição não encontrada para external_reference: ${paymentData.external_reference}`);
+      }
+    }
+    
+    res.status(200).send("OK");
+  } catch (error) {
+    console.error('Erro na rota webhook:', error);
+    res.status(500).send("Error");
+  }
+});
+
+// Rota para consultar pagamento
+app.get('/mercadopago/payment/:id', async (req, res) => {
+  try {
+    const payment = await paymentApi.get({ id: req.params.id });
+    
+    res.json({
+      id: payment.id,
+      status: payment.status,
+      status_detail: payment.status_detail,
+      transaction_amount: payment.transaction_amount,
+      currency_id: payment.currency_id,
+      date_created: payment.date_created,
+      date_approved: payment.date_approved,
+      external_reference: payment.external_reference,
+      payer: {
+        email: payment.payer?.email,
+        identification: payment.payer?.identification,
+      },
+    });
+  } catch (error) {
+    console.error('Erro na rota payment:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
@@ -328,6 +651,35 @@ app.get('/inscricoes', authenticateToken, authorizeRoles(['admin', 'editor', 'vi
   } catch (err) {
     console.error('Erro ao buscar inscrições:', err);
     res.status(500).json({ message: 'Erro ao buscar inscrições' });
+  }
+});
+
+// Rota para listar pagamentos (protegida)
+app.get('/mercadopago/payments', authenticateToken, async (req, res) => {
+  try {
+    const { status, limit } = req.query;
+    let query = "SELECT * FROM payment_preferences WHERE 1=1";
+    const params = [];
+    let paramCount = 1;
+
+    if (status) {
+      query += ` AND status = $${paramCount}`;
+      params.push(status);
+      paramCount++;
+    }
+
+    query += " ORDER BY created_at DESC";
+
+    if (limit) {
+      query += ` LIMIT $${paramCount}`;
+      params.push(parseInt(limit));
+    }
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Erro na rota payments:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
@@ -475,7 +827,7 @@ app.post('/atualizar_pagamento', authenticateToken, authorizeRoles(['admin', 'ed
     }
   } catch (err) {
     console.error('Erro ao atualizar pagamento:', err);
-    res.status(500).json({ message: 'Erro ao atualizar pagamento' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
@@ -495,6 +847,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`🔐 Modo de segurança: ${process.env.NODE_ENV || 'development'}`);
+  console.log('🔗 Rotas do Mercado Pago disponíveis em /mercadopago/*');
   
   if (!process.env.JWT_SECRET) {
     console.warn('⚠️  AVISO: JWT_SECRET não definido. Use uma chave segura em produção!');
@@ -502,6 +855,18 @@ app.listen(PORT, '0.0.0.0', () => {
   
   if (!process.env.ADMIN_PASSWORD_HASH) {
     console.warn('⚠️  AVISO: ADMIN_PASSWORD_HASH não definido. Defina uma senha segura em produção!');
+  }
+
+  if (!process.env.MP_ACCESS_TOKEN) {
+    console.warn('⚠️  ATENÇÃO: MP_ACCESS_TOKEN não está configurado!');
+  } else {
+    console.log('✅ Mercado Pago configurado com sucesso!');
+  }
+
+  if (!process.env.BACKEND_URL) {
+    console.warn('⚠️  ATENÇÃO: BACKEND_URL não está configurado! Webhooks podem não funcionar.');
+  } else {
+    console.log(`🔗 Webhook URL configurada: ${process.env.BACKEND_URL}/mercadopago/webhook`);
   }
 });
 

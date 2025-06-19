@@ -5,18 +5,13 @@ import { IoShirt } from "react-icons/io5";
 import { CiInstagram } from "react-icons/ci";
 import { MdOutlineStadium } from "react-icons/md";
 import "../styles/formularioinscricao.css";
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
-
-initMercadoPago(`${process.env.MP_PUBLIC_KEY}`);
-
 
 function FormularioInscricao() {
   const [vagasRestantes, setVagasRestantes] = useState(null);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
-  const [formaPagamento, setFormaPagamento] = useState('pix');
   const [segundaInscricao, setSegundaInscricao] = useState(false);
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
-  const [preferenceId, setPreferenceId] = useState('');
+
   useEffect(() => {
     if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {
       checkVagasDisponiveis(categoriaSelecionada);
@@ -49,133 +44,124 @@ function FormularioInscricao() {
     categoria: '',
     ctRepresentante: '',
     ctParceiro: '',
-    celular: '', // Adicionando celular
+    celular: '',
     aceitarTermos: false,
   });
 
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
- const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleSubmit = async () => {
+    // Se já estiver enviando a inscrição, retorna
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-const handleSubmit = async () => {
-  // Se já estiver enviando a inscrição, retorna
-  if (isSubmitting) return;
-  setIsSubmitting(true);
+    // Validação dos campos obrigatórios
+    const camposObrigatorios = [
+      'representante',
+      'parceiro',
+      'instagramRepresentante',
+      'instagramParceiro',
+      'uniformeRepresentante',
+      'uniformeParceiro',
+      'categoria',
+      'celular',
+      'aceitarTermos',
+    ];
 
-  // Validação dos campos obrigatórios
-  const camposObrigatorios = [
-    'representante',
-    'parceiro',
-    'instagramRepresentante',
-    'instagramParceiro',
-    'uniformeRepresentante',
-    'uniformeParceiro',
-    'categoria',
-    'celular',
-    'aceitarTermos', // Verifica se o checkbox de termos foi marcado
-  ];
-
-  const novosInvalidos = {};
-  
-  camposObrigatorios.forEach((campo) => {
-    if (!formData[campo] || formData[campo] === 'Categoria' || formData[campo] === 'Selecione o tamanho') {
-      novosInvalidos[campo] = true;
-    }
-  });
-
-  if (!formData.aceitarTermos) {
-    novosInvalidos.aceitarTermos = true;
-  }
-
-  setCamposInvalidos(novosInvalidos);
-
-  if (Object.keys(novosInvalidos).length > 0) {
-    setError('Por favor, preencha todos os campos obrigatórios e aceite os Termos e Condições.');
-    setIsSubmitting(false);
-    return;
-  }
-
-  // Passo 1: Criar a preferência de pagamento
-  const title = 'Inscrição Brothers Cup';
-  const price = 250; // Preço da inscrição
-  const quantity = 1;
-
-  try {
-    // Enviar os dados para o backend criar a preferência de pagamento
-    const preferenceResponse = await fetch(`${BACKEND_URL}/mercadopago/create-preference`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, price, quantity }),
+    const novosInvalidos = {};
+    
+    camposObrigatorios.forEach((campo) => {
+      if (!formData[campo] || formData[campo] === 'Categoria' || formData[campo] === 'Selecione o tamanho') {
+        novosInvalidos[campo] = true;
+      }
     });
 
-    const preferenceData = await preferenceResponse.json();
+    if (!formData.aceitarTermos) {
+      novosInvalidos.aceitarTermos = true;
+    }
 
-    if (preferenceResponse.ok) {
-      // Receber o preferenceId do backend e atualizar o estado
-      setPreferenceId(preferenceData.preferenceId);
-    } else {
-      console.error('Erro ao criar preferência', preferenceData);
-      setError('Erro ao criar preferência de pagamento');
+    setCamposInvalidos(novosInvalidos);
+
+    if (Object.keys(novosInvalidos).length > 0) {
+      setError('Por favor, preencha todos os campos obrigatórios e aceite os Termos e Condições.');
       setIsSubmitting(false);
       return;
     }
-  } catch (error) {
-    console.error('Erro na requisição para criar preferência:', error);
-    setError('Erro na requisição para criar preferência');
-    setIsSubmitting(false);
-    return;
-  }
 
-  // Passo 2: Enviar a inscrição para o backend
-  try {
-    // Enviar os dados da inscrição
-    const inscricaoRes = await fetch(`${BACKEND_URL}/inscricoes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
-
-    if (inscricaoRes.ok) {
-      const inscricaoData = await inscricaoRes.json();
-      setMessage("Inscrição realizada com sucesso!");
-
-      // Adicione estas linhas para zerar o formulário
-      setFormData({
-        representante: "",
-        parceiro: "",
-        instagramRepresentante: "",
-        instagramParceiro: "",
-        uniformeRepresentante: "",
-        uniformeParceiro: "",
-        categoria: "",
-        ctRepresentante: "",
-        ctParceiro: "",
-        celular: "",
-        aceitarTermos: false,
+    try {
+      // ÚNICA REQUISIÇÃO: Enviar a inscrição (que já cria a preferência automaticamente)
+      const inscricaoRes = await fetch(`${BACKEND_URL}/inscricoes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          valor_inscricao: 250 // Adicionar o valor da inscrição
+        }),
       });
-      setCamposInvalidos({});
-      setError("");
-      setCategoriaSelecionada(""); // Zera a categoria selecionada
-      setVagasRestantes(null); // Zera as vagas restantes
-      setSegundaInscricao(false); // Zera a segunda inscrição
-    } else {
-      const errorData = await inscricaoRes.json();
-      setError(errorData.message || 'Erro ao salvar inscrição.');
+
+      if (inscricaoRes.ok) {
+        const inscricaoData = await inscricaoRes.json();
+        
+        console.log('Resposta da inscrição:', inscricaoData); // Para debug
+        
+        // VERIFICAR SE O INIT_POINT EXISTE E REDIRECIONAR
+        if (inscricaoData.init_point) {
+          console.log('Redirecionando para:', inscricaoData.init_point);
+          // REDIRECIONAMENTO PARA O MERCADO PAGO
+          window.location.href = inscricaoData.init_point;
+        } else if (inscricaoData.sandbox_init_point) {
+          console.log('Redirecionando para sandbox:', inscricaoData.sandbox_init_point);
+          // REDIRECIONAMENTO PARA O MERCADO PAGO (SANDBOX)
+          window.location.href = inscricaoData.sandbox_init_point;
+        } else {
+          console.error('init_point não encontrado na resposta:', inscricaoData);
+          setError('Erro: URL de pagamento não encontrada. Tente novamente.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Mensagem de sucesso (opcional, pois o usuário será redirecionado)
+        setMessage("Redirecionando para o pagamento...");
+
+        // Limpar formulário (opcional, pois o usuário será redirecionado)
+        setFormData({
+          representante: "",
+          parceiro: "",
+          instagramRepresentante: "",
+          instagramParceiro: "",
+          uniformeRepresentante: "",
+          uniformeParceiro: "",
+          categoria: "",
+          ctRepresentante: "",
+          ctParceiro: "",
+          celular: "",
+          aceitarTermos: false,
+        });
+        setCamposInvalidos({});
+        setError("");
+        setCategoriaSelecionada("");
+        setVagasRestantes(null);
+        setSegundaInscricao(false);
+        
+      } else {
+        const errorData = await inscricaoRes.json();
+        setError(errorData.message || 'Erro ao salvar inscrição.');
+        setIsSubmitting(false);
+      }
+    } catch (err) {
+      console.error('Erro na requisição:', err);
+      setError('Erro ao conectar com o servidor ou processar a inscrição.');
+      setIsSubmitting(false);
     }
-  } catch (err) {
-    console.error(err);
-    setError('Erro ao conectar com o servidor ou processar a inscrição.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="d-flex justify-content-center">
@@ -384,20 +370,6 @@ const handleSubmit = async () => {
             </div>
           </div>
 
-          {/* Forma de Pagamento */}
-          <div className='modal-separado'>
-            <p className='titulo-inscricao'>Forma de Pagamento</p>
-            <select
-              className='input'
-              name='formaPagamento'
-              value={formaPagamento}
-              onChange={(e) => setFormaPagamento(e.target.value)}
-            >
-              <option value="pix">PIX</option>
-              <option value="cartao">Cartão de Crédito</option>
-            </select>
-          </div>
-
           {/* Segunda Inscrição */}
           <div className="modal-separado">
             <div className="checkbox-wrapper">
@@ -407,14 +379,13 @@ const handleSubmit = async () => {
                 name="segundaInscricao"
                 className="segundaInscricao"
                 checked={segundaInscricao}
-                onChange={() => setSegundaInscricao(!segundaInscricao)}  // Alterna entre true/false
+                onChange={() => setSegundaInscricao(!segundaInscricao)}
               />
               <label htmlFor="segundaInscricao">
                 Segunda inscrição
               </label>
             </div>
 
-            {/* Exibe a mensagem em vermelho se a segunda inscrição estiver marcada */}
             {segundaInscricao && (
               <p style={{ color: 'red', marginTop: '10px' }}>
                 Para sua segunda inscrição, nos chame no direct!
@@ -438,34 +409,34 @@ const handleSubmit = async () => {
                 <a href="/docs/termos-brotherscup.pdf" target="_blank" rel="noopener noreferrer">
                   Termos e Condições
                 </a>{" "}
-                e o{" "}
-                <a href="/docs/termo-privacidade.pdf" target="_blank" rel="noopener noreferrer">
-                  Termo de Privacidade
+                e a{" "}
+                <a href="/docs/politica-privacidade-brotherscup.pdf" target="_blank" rel="noopener noreferrer">
+                  Política de Privacidade
                 </a>
               </label>
             </div>
+            {camposInvalidos.aceitarTermos && (
+              <p style={{ color: 'red', fontSize: '14px', marginTop: '5px' }}>
+                Você deve aceitar os Termos e Condições para continuar.
+              </p>
+            )}
           </div>
 
-          {/* Botão de Inscrição - Desativado se "Segunda Inscrição" for marcada */}
-           <button
-      className='botao-inscricao'
-      onClick={handleSubmit}
-      disabled={isSubmitting || isCategoriaSemVagas}
-    >
-      {isSubmitting ? "Enviando..." : "Inscrever-se"}
-    </button>
-
-    {/* Renderiza o Wallet do Mercado Pago quando o preferenceId estiver disponível */}
-    {preferenceId && (
-      <div style={{ marginTop: '20px' }}>
-        <Wallet initialization={{ preferenceId }} />
-      </div>
-    )}
-
-
-          {/* Exibir mensagens de erro ou sucesso */}
+          {/* Mensagens de erro e sucesso */}
           {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
           {message && <p style={{ color: 'green', marginTop: '10px' }}>{message}</p>}
+
+          {/* Botão de submissão */}
+          <div className="modal-separado">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting || isCategoriaSemVagas}
+              className={`botao-inscricao ${isSubmitting ? 'botao-carregando' : ''} ${isCategoriaSemVagas ? 'botao-desabilitado' : ''}`}
+            >
+              {isSubmitting ? 'Processando...' : 'Finalizar Inscrição'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -473,5 +444,4 @@ const handleSubmit = async () => {
 }
 
 export default FormularioInscricao;
-
 
