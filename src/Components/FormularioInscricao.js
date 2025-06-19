@@ -8,6 +8,7 @@ import "../styles/formularioinscricao.css";
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 
 initMercadoPago(`${process.env.MP_PUBLIC_KEY}`);
+const [preferenceId, setPreferenceId] = useState('');
 
 function FormularioInscricao() {
   const [vagasRestantes, setVagasRestantes] = useState(null);
