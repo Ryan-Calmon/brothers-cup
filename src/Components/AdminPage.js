@@ -178,7 +178,7 @@ function AdminPage() {
       (inscricao.categoria || '').toLowerCase().includes(search.toLowerCase()) ||
       inscricao.id?.toString().includes(search)
     )
-    .filter(inscricao => !mostrarApenasPagos || inscricao.status_pagamento === 'aprovado');
+    .filter(inscricao => !mostrarApenasPagos || inscricao.status_pagamento === 'approved');
 
   const handleLogout = () => {
     if (window.confirm('Tem certeza que deseja sair?')) {
@@ -193,7 +193,7 @@ function AdminPage() {
   };
 
   const exportarExcel = () => {
-    const pagos = inscricoes.filter(i => i.status_pagamento === 'aprovado');
+    const pagos = inscricoes.filter(i => i.status_pagamento === 'approved');
     const dados = pagos.map(i => ({
       ID: i.id,
       Representante: i.representante,
@@ -216,7 +216,7 @@ function AdminPage() {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'aprovado':
+      case 'approved':
         return '✅';
       case 'pendente':
         return '⏳';
@@ -246,7 +246,7 @@ function AdminPage() {
           <p className="admin-subtitle">
             Bem-vindo, <strong>{user?.username}</strong> | 
             Total de inscrições: <strong>{inscricoes.length}</strong> | 
-            Pagas: <strong>{inscricoes.filter(i => i.status_pagamento === 'aprovado').length}</strong>
+            Pagas: <strong>{inscricoes.filter(i => i.status_pagamento === 'approved').length}</strong>
           </p>
         </div>
         <div className="header-right">
@@ -323,7 +323,7 @@ function AdminPage() {
                 {filteredInscricoes.map(inscricao => (
                   <tr 
                     key={inscricao.id} 
-                    className={inscricao.status_pagamento === 'aprovado' ? 'pago' : ''}
+                    className={inscricao.status_pagamento === 'approved' ? 'pago' : ''}
                   >
                     <td className="id-cell">{inscricao.id}</td>
                     <td className="name-cell">{inscricao.representante}</td>
@@ -534,7 +534,7 @@ function AdminPage() {
                     onChange={handleChange}
                   >
                     <option value="pendente">Pendente</option>
-                    <option value="aprovado">Aprovado</option>
+                    <option value="approved">Aprovado</option>
                     <option value="rejeitado">Rejeitado</option>
                   </select>
                 </div>
