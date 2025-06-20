@@ -61,7 +61,7 @@ function FormularioInscricao() {
 
   // Função para calcular o valor baseado na forma de pagamento
   const getValorInscricao = () => {
-    return formaPagamento === 'cartao' ? 15 : 1;
+    return formaPagamento === 'cartao' ? 263 : 250;
   };
 
   // Função para verificar se o botão deve estar desabilitado
@@ -408,13 +408,13 @@ function FormularioInscricao() {
               value={formaPagamento}
               onChange={(e) => setFormaPagamento(e.target.value)}
             >
-              <option value="pix">PIX - R$ 250,00</option>
-              <option value="cartao">Cartão de Crédito - R$ 260,00</option>
+              <option value="pix">PIX</option>
+              <option value="cartao">Cartão de Crédito</option>
             </select>
-            <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>
+            <p style={{ color: '#f5d533', fontSize: '14px', marginTop: '5px' }}>
               {formaPagamento === 'pix' 
-                ? 'Pagamento via PIX: R$ 250,00' 
-                : 'Pagamento via Cartão de Crédito: R$ 260,00'
+                ? 'Pagamento via PIX' 
+                : 'Pagamento via Cartão de Crédito - Com adicional de taxas admnistrativas'
               }
             </p>
           </div>

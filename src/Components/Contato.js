@@ -31,7 +31,7 @@ function Contato(){
     </div>
       <div className="wpp">
              <a
-        href="https://wa.me/+5521988280800" 
+        href="https://wa.me/+5521959096545" 
          target="_blank" // Abre o link em uma nova aba
         rel="noopener noreferrer" // Para melhorar a segurança ao abrir em uma nova aba
          >
