@@ -2,6 +2,7 @@ const express = require("express");
 const { Pool } = require("pg");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const helmet = require("helmet");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
@@ -9,7 +10,7 @@ require("dotenv").config();
 
 const app = express();
 const frontendURL = process.env.FRONTEND_URL;
-app.use(helmet())
+app.use(helmet());
 app.use(cors({
   origin: [frontendURL, "https://www.brotherscup.com.br", "http://localhost:3000"],
   credentials: true,
