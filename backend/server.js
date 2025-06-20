@@ -460,6 +460,7 @@ app.post("/inscricoes", async (req, res) => {
         { id: "ticket" },
         { id: "atm" }
       ];
+      paymentMethods.installments = 1; 
     }
 
     const preferenceBody = {
