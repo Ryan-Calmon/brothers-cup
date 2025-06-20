@@ -12,6 +12,7 @@ function AdminPage() {
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ; 
 
   useEffect(() => {
     // Verificar se o usuário está autenticado
@@ -40,7 +41,7 @@ function AdminPage() {
 
   const verifyToken = async (token) => {
     try {
-      const response = await fetch('http://localhost:5000/verify-token', {
+      const response = await fetch(`${BACKEND_URL}/verify-token`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -80,7 +81,7 @@ function AdminPage() {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:5000/inscricoes', {
+      const response = await fetch(`${BACKEND_URL}/inscricoes`, {
         headers: getAuthHeaders()
       });
 
@@ -105,7 +106,7 @@ function AdminPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/inscricao/${id}`, {
+      const response = await fetch(`${BACKEND_URL}/inscricao/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
@@ -138,7 +139,7 @@ function AdminPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/inscricao/${editing.id}`, {
+      const response = await fetch(`${BACKEND_URL}/inscricao/${editing.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(editing)

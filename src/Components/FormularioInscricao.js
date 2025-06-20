@@ -11,7 +11,7 @@ function FormularioInscricao() {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
   const [formaPagamento, setFormaPagamento] = useState('pix'); // Restaurando forma de pagamento
   const [segundaInscricao, setSegundaInscricao] = useState(false);
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ; 
 
   useEffect(() => {
     if (categoriaSelecionada && categoriaSelecionada !== 'Categoria') {

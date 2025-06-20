@@ -9,7 +9,7 @@ require("dotenv").config();
 
 const app = express();
 const frontendURL = process.env.FRONTEND_URL;
-
+app.use(helmet())
 app.use(cors({
   origin: [frontendURL, "https://www.brotherscup.com.br", "http://localhost:3000"],
   credentials: true,
