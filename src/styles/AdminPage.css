@@ -10,7 +10,188 @@
   box-sizing: border-box;
   min-height: 100vh; /* Garante que o container ocupe a altura total da viewport */
 }
+/* Estilos para a seção de status do servidor */
+.server-status-section {
+  background: #1a1a2e; /* Fundo mais escuro para a seção */
+  border: 1px solid #3a3a5a;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
 
+.server-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.status-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e0e0e0; /* Texto claro para o título */
+  margin: 0;
+}
+
+.refresh-status-button {
+  background: #6a0f81; /* Roxo para o botão */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.refresh-status-button:hover:not(:disabled) {
+  background: #4a0b5e; /* Roxo mais escuro no hover */
+  transform: translateY(-1px);
+}
+
+.refresh-status-button:disabled {
+  background: #444; /* Cinza escuro quando desabilitado */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.server-status-card {
+  background: #2a2a4a; /* Fundo escuro para o card de status */
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #28a745;
+  transition: all 0.3s ease;
+}
+
+.server-status-card.offline {
+  border-left-color: #dc3545;
+}
+
+.status-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+.status-dot.online {
+  background: #28a745;
+}
+
+.status-dot.offline {
+  background: #dc3545;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+.status-dot.offline {
+  animation-name: pulse-red;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+
+.status-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e0e0e0; /* Texto claro para o status */
+}
+
+.status-timestamp {
+  font-size: 0.85rem;
+  color: #bbbbbb; /* Cinza claro para o timestamp */
+  font-style: italic;
+}
+
+.status-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #3a3a5a;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1a1a2e; /* Fundo mais escuro para os itens de detalhe */
+  border-radius: 6px;
+  border: 1px solid #3a3a5a;
+}
+
+.status-label {
+  font-weight: 500;
+  color: #bbbbbb; /* Cinza claro para as labels */
+  font-size: 0.9rem;
+}
+
+.status-value {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #e0e0e0; /* Texto claro para os valores */
+}
+
+.status-value.online {
+  color: #28a745;
+}
+
+.status-value.offline {
+  color: #dc3545;
+}
+
+.status-error {
+  padding: 12px;
+  background: #4a148c; /* Roxo escuro para o erro */
+  border: 1px solid #6a0f81;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.error-message {
+  color: #fdd835; /* Amarelo para a mensagem de erro */
+  font-weight: 500;
+  font-size: 0.9rem;
+}
 /* Cabeçalho */
 .admin-header {
   display: flex;
@@ -509,6 +690,27 @@
 
 /* Responsividade */
 @media (max-width: 768px) {
+  .server-status-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .status-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .status-details {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
   .admin-header {
     flex-direction: column;
     align-items: flex-start;
@@ -563,3 +765,19 @@
     justify-content: center;
   }
 }
+.refresh-status-button:disabled {
+  position: relative;
+}
+
+.refresh-status-button:disabled::after {
+  content: \'\';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  border: 2px solid transparent;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
