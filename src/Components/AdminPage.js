@@ -11,6 +11,8 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
+  const [serverStatus, setServerStatus] = useState(null);
+  const [statusLoading, setStatusLoading] = useState(false);
   const navigate = useNavigate();
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL ; 
 
@@ -37,6 +39,9 @@ function AdminPage() {
     
     // Buscar inscrições
     fetchInscricoes();
+    
+    // Buscar status do servidor
+    fetchServerStatus();
   }, [navigate]);
 
   const verifyToken = async (token) => {
@@ -74,6 +79,34 @@ function AdminPage() {
       return true;
     }
     return false;
+  };
+
+  const fetchServerStatus = async () => {
+    setStatusLoading(true);
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/status`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setServerStatus(data);
+      } else {
+        setServerStatus({
+          status: 'offline',
+          message: 'Servidor não respondeu',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao buscar status do servidor:', err);
+      setServerStatus({
+        status: 'offline',
+        message: 'Erro de conexão',
+        timestamp: new Date().toISOString()
+      });
+    } finally {
+      setStatusLoading(false);
+    }
   };
 
   const fetchInscricoes = async () => {
@@ -193,6 +226,10 @@ function AdminPage() {
     fetchInscricoes();
   };
 
+  const handleRefreshStatus = () => {
+    fetchServerStatus();
+  };
+
   const exportarExcel = () => {
     const pagos = inscricoes.filter(i => i.status_pagamento === 'approved');
     const dados = pagos.map(i => ({
@@ -228,6 +265,23 @@ function AdminPage() {
     }
   };
 
+  const formatUptime = (seconds) => {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
+
   if (loading) {
     return (
       <div className="admin-container">
@@ -255,6 +309,64 @@ function AdminPage() {
             🚪 Sair
           </button>
         </div>
+      </div>
+
+      {/* Seção de Status do Servidor */}
+      <div className="server-status-section">
+        <div className="server-status-header">
+          <h2 className="status-title">🖥️ Status do Servidor</h2>
+          <button 
+            className="refresh-status-button" 
+            onClick={handleRefreshStatus}
+            disabled={statusLoading}
+          >
+            {statusLoading ? '⏳' : '🔄'} Atualizar Status
+          </button>
+        </div>
+        
+        {serverStatus && (
+          <div className={`server-status-card ${serverStatus.status}`}>
+            <div className="status-main">
+              <div className="status-indicator">
+                <span className={`status-dot ${serverStatus.status}`}></span>
+                <strong className="status-text">
+                  {serverStatus.status === 'online' ? '🟢 Online' : '🔴 Offline'}
+                </strong>
+              </div>
+              <div className="status-timestamp">
+                Última verificação: {new Date(serverStatus.timestamp).toLocaleString('pt-BR')}
+              </div>
+            </div>
+            
+            {serverStatus.status === 'online' && (
+              <div className="status-details">
+                <div className="status-item">
+                  <span className="status-label">Uptime:</span>
+                  <span className="status-value">{formatUptime(serverStatus.uptime)}</span>
+                </div>
+                <div className="status-item">
+                  <span className="status-label">Banco de Dados:</span>
+                  <span className={`status-value ${serverStatus.database?.status}`}>
+                    {serverStatus.database?.status === 'online' ? '🟢 Online' : '🔴 Offline'}
+                    {serverStatus.database?.latency && ` (${serverStatus.database.latency})`}
+                  </span>
+                </div>
+                <div className="status-item">
+                  <span className="status-label">Ambiente:</span>
+                  <span className="status-value">{serverStatus.server?.environment || 'N/A'}</span>
+                </div>
+              </div>
+            )}
+            
+            {serverStatus.status === 'offline' && (
+              <div className="status-error">
+                <span className="error-message">
+                  ⚠️ {serverStatus.message || 'Servidor indisponível'}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {error && (
