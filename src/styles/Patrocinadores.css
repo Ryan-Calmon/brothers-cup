@@ -1,0 +1,318 @@
+/* Container principal dos patrocinadores - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+/* Título da seção de patrocinadores - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-titulo {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 50px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+.patrocinadores-obrigado{
+    color: white;
+    margin-top:35px
+
+
+}
+/* Grid principal dos patrocinadores - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+/* Estilos base para as linhas de patrocinadores - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-linha {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 30px;
+}
+
+/* Estilos base para as colunas de patrocinadores - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-coluna {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Colunas específicas para patrocinadores prata - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-coluna-prata {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 calc(25% - 22.5px);
+    max-width: calc(25% - 22.5px);
+}
+
+/* Links dos patrocinadores - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-link {
+    display: block;
+    text-decoration: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.patrocinadores-link:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos base para as imagens de patrocinadores - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-imagem {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    transition: filter 0.3s ease;
+    padding: 0;
+    background: white;
+}
+
+.patrocinadores-link:hover .patrocinadores-imagem {
+    filter: brightness(1.1);
+}
+
+/* PATROCINADOR MASTER - Maior tamanho - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-linha-master {
+    margin-bottom: 20px;
+}
+
+.patrocinadores-coluna-master {
+    width: 400px;
+}
+
+.patrocinadores-imagem-master {
+    height: 200px;
+    border: 3px solid #8b2dc9;
+    border-radius: 12px;
+}
+
+.patrocinadores-coluna-master .patrocinadores-link {
+    border: 3px solid #8b2dc9;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.patrocinadores-coluna-master .patrocinadores-link:hover {
+    box-shadow: 0 15px 50px rgba(168, 60, 231, 0.3);
+}
+
+/* PATROCINADOR OURO - Tamanho médio - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-linha-ouro {
+    margin-bottom: 20px;
+}
+
+.patrocinadores-coluna-ouro {
+    width: 300px;
+}
+
+.patrocinadores-imagem-ouro {
+    height: 150px;
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+}
+
+.patrocinadores-coluna-ouro .patrocinadores-link {
+    border: 2px solid #ffd700;
+    background: linear-gradient(135deg, #fffef7 0%, #fff9e6 100%);
+}
+
+.patrocinadores-coluna-ouro .patrocinadores-link:hover {
+    box-shadow: 0 12px 40px rgba(255, 215, 0, 0.3);
+}
+
+/* PATROCINADORES PRATA - Tamanho padrão - ESPECÍFICO DESTA PÁGINA */
+.patrocinadores-linha-prata {
+    margin-bottom: 15px;
+}
+
+.patrocinadores-coluna-prata {
+    width: 200px;
+}
+
+.patrocinadores-imagem-prata {
+    border: 0.5px solid #c0c0c0;
+    border-radius: 8px;
+}
+
+.patrocinadores-coluna-prata .patrocinadores-link {
+    border: 0.5px solid #c0c0c0;
+    background: #ffffff;
+}
+
+.patrocinadores-coluna-prata .patrocinadores-link:hover {
+    box-shadow: 0 10px 30px rgba(192, 192, 192, 0.3);
+}
+
+/* Responsividade para tablets - ESPECÍFICO DESTA PÁGINA */
+@media (max-width: 768px) {
+    .patrocinadores-container {
+        padding: 40px 15px;
+    }
+    
+    .patrocinadores-titulo {
+        font-size: 2rem;
+        margin-bottom: 40px;
+    }
+    
+    .patrocinadores-grid {
+        gap: 30px;
+    }
+    
+    .patrocinadores-linha {
+        gap: 20px;
+    }
+    
+    /* Ajustar tamanhos para tablet */
+    .patrocinadores-coluna-master {
+        width: 300px;
+    }
+    
+    .patrocinadores-imagem-master {
+        height: 150px;
+    }
+    
+    .patrocinadores-coluna-ouro {
+        width: 250px;
+    }
+    
+    .patrocinadores-imagem-ouro {
+        height: 120px;
+    }
+    
+    .patrocinadores-coluna-prata {
+        width: 150px;
+    }
+    
+    .patrocinadores-imagem-prata {
+        height: 90px;
+        border: 0.25px solid #c0c0c0;
+    }
+    
+    .patrocinadores-coluna-prata .patrocinadores-link {
+        border: 0.25px solid #c0c0c0;
+        background: #ffffff;
+    }
+    }
+
+
+/* Responsividade para mobile - ESPECÍFICO DESTA PÁGINA */
+@media (max-width: 480px) {
+    .patrocinadores-container {
+        padding: 30px 10px;
+    }
+    
+    .patrocinadores-titulo {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+    }
+    
+    .patrocinadores-grid {
+        gap: 20px;
+    }
+    
+    .patrocinadores-linha {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    /* Ajustar tamanhos para mobile */
+    .patrocinadores-coluna-master {
+        width: 250px;
+    }
+    
+    .patrocinadores-imagem-master {
+        height: 120px;
+        padding: 0px;
+    }
+    
+    .patrocinadores-coluna-ouro {
+        width: 200px;
+    }
+    
+    .patrocinadores-imagem-ouro {
+        height: 100px;
+        padding: 0px;
+    }
+    
+    .patrocinadores-coluna-prata {
+        width: 120px;
+    }
+    
+    .patrocinadores-imagem-prata {
+        height: 70px;
+        padding: 4px;
+        border: 0.25px solid #c0c0c0;
+    }
+    
+      .patrocinadores-coluna-prata {
+        flex: 0 0 calc(50% - 10px);
+        max-width: calc(50% - 10px);
+    }
+    .patrocinadores-coluna-prata .patrocinadores-link {
+        border: 0.25px solid #c0c0c0;
+        background: #ffffff;
+    }
+}
+
+/* Responsividade para telas muito pequenas - ESPECÍFICO DESTA PÁGINA */
+@media (max-width: 320px) {
+    .patrocinadores-coluna-prata {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .patrocinadores-coluna-prata {
+        width: 150px;
+    }
+    
+    .patrocinadores-imagem-prata {
+        height: 80px;
+        border: 0.25px solid #c0c0c0;
+    }
+}
+
+/* Animações específicas dos patrocinadores - ESPECÍFICO DESTA PÁGINA */
+@keyframes patrocinadores-fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.patrocinadores-linha {
+    animation: patrocinadores-fadeInUp 0.6s ease-out;
+}
+
+.patrocinadores-linha-master {
+    animation-delay: 0.1s;
+}
+
+.patrocinadores-linha-ouro {
+    animation-delay: 0.2s;
+}
+
+.patrocinadores-linha-prata:first-of-type {
+    animation-delay: 0.3s;
+}
+
+.patrocinadores-linha-prata:last-of-type {
+    animation-delay: 0.4s;
+}
+

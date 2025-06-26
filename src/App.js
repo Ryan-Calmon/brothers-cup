@@ -12,6 +12,8 @@ import Footer from './Components/Footer';
 import Local from './Components/Local';
 import Sucesso from './Components/Sucesso';
 import Tabelas from './Components/Tabela';
+import SponsorsCarousel from './Components/SponsorsCarousel';
+import Patrocinadores from './Components/Patrocinadores';
 import './App.css';
 
 
@@ -75,7 +77,9 @@ function App() {
               <section id="inicio">
                 <Home />
               </section>
-
+              <section id="patrocinadores">
+              <SponsorsCarousel />
+              </section>
               <section id="inscricao">
                 <Inscricao />
               </section>
@@ -103,7 +107,7 @@ function App() {
               )
             }
           />
-
+          <Route path="/patrocinadores" element={<Patrocinadores />} />
           <Route path="/tabelas" element={<Tabelas />} />
         </Routes>
       </main>

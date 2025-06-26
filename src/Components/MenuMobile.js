@@ -55,6 +55,7 @@ const MenuMobile = () => {
                       <li><a href="/tabelas" onClick={toggleMenu}>Tabelas</a></li>
                       <li><a href="#local" onClick={toggleMenu}>Local</a></li>
                       <li><a href="#primeiraetapa" onClick={toggleMenu}>Galeria</a></li>
+                      <li><a href="/patrocinadores" onClick={toggleMenu}>Patrocinadores</a></li>
                       <li><a href="#contato" onClick={toggleMenu}>Contato</a></li>
                     </>
                   ) : (
@@ -66,6 +67,7 @@ const MenuMobile = () => {
                       <li><a href="/tabelas" onClick={toggleMenu}>Tabelas</a></li>
                       <li><a href="/#local" onClick={toggleMenu}>Local</a></li>
                       <li><a href="/#primeiraetapa" onClick={toggleMenu}>Galeria</a></li>
+                      <li><a href="/patrocinadores" onClick={toggleMenu}>Patrocinadores</a></li>
                       <li><a href="/#contato" onClick={toggleMenu}>Contato</a></li>
                     </>
                   )}

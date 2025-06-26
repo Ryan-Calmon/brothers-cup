@@ -581,7 +581,7 @@
 }
 
 .form-group label {
-  color: #bbbbbb; /* Cor da label */
+  color: white !important; /* Cor da label */
   margin-bottom: 5px;
   font-size: 0.9em;
 }

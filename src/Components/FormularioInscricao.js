@@ -455,7 +455,7 @@ function FormularioInscricao() {
               />
               <label htmlFor="AceitarTermos">
                 Aceito os{" "}
-                <a href="/docs/termos-brotherscup.pdf" target="_blank" rel="noopener noreferrer">
+                <a href="/docs/Termos-e-condicoes-brothers-cup.pdf" target="_blank" rel="noopener noreferrer">
                   Termos e Condições
                 </a>{" "}
                 e a{" "}

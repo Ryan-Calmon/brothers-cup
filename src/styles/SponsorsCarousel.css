@@ -1,0 +1,236 @@
+.sponsors-section {
+  width: 100%;
+  padding: 40px 0;
+  background-color: transparent;
+  overflow: hidden;
+  position: relative;
+}
+
+.sponsors-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  mask: linear-gradient(
+    90deg,
+    transparent,
+    white 20%,
+    white 80%,
+    transparent
+  );
+  -webkit-mask: linear-gradient(
+    90deg,
+    transparent,
+    white 20%,
+    white 80%,
+    transparent
+  );
+}
+
+.sponsors-track {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  animation: scroll-horizontal 40s linear infinite;
+  will-change: transform;
+}
+
+.sponsor-item {
+  flex-shrink: 0;
+  margin: 0 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Removido height e min-width padrão, serão definidos por categoria */
+}
+
+.sponsor-logo {
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: grayscale(0%) brightness(1);
+  transition: all 0.3s ease;
+  user-select: none;
+  pointer-events: none;
+  /* Removido max-height e max-width padrão, serão definidos por categoria */
+}
+
+.sponsor-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Animação de rolagem horizontal infinita */
+@keyframes scroll-horizontal {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Pausar animação ao passar o mouse sobre a seção */
+.sponsors-section:hover .sponsors-track {
+  animation-play-state: paused;
+}
+
+/* Estilos para Patrocinador MASTER */
+.sponsor-master {
+  height: 120px; /* Maior altura */
+  min-width: 250px; /* Maior largura */
+  margin: 0 80px; /* Mais espaçamento */
+}
+
+.sponsor-master .sponsor-logo {
+  max-height: 100px; /* Maior tamanho do logo */
+  max-width: 220px;
+}
+
+/* Estilos para Patrocinador OURO */
+.sponsor-gold {
+  height: 100px; /* Altura média */
+  min-width: 200px; /* Largura média */
+  margin: 0 70px; /* Espaçamento médio */
+}
+
+.sponsor-gold .sponsor-logo {
+  max-height: 80px; /* Tamanho médio do logo */
+  max-width: 180px;
+}
+
+/* Estilos para Patrocinador PRATA (tamanho padrão) */
+.sponsor-silver {
+  height: 80px; /* Altura padrão */
+  min-width: 150px; /* Largura padrão */
+  margin: 0 60px; /* Espaçamento padrão */
+}
+
+.sponsor-silver .sponsor-logo {
+  max-height: 60px; /* Tamanho padrão do logo */
+  max-width: 150px;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .sponsor-master {
+    height: 100px;
+    min-width: 200px;
+    margin: 0 60px;
+  }
+  .sponsor-master .sponsor-logo {
+    max-height: 80px;
+    max-width: 180px;
+  }
+
+  .sponsor-gold {
+    height: 80px;
+    min-width: 160px;
+    margin: 0 50px;
+  }
+  .sponsor-gold .sponsor-logo {
+    max-height: 65px;
+    max-width: 140px;
+  }
+
+  .sponsor-silver {
+    height: 70px;
+    min-width: 120px;
+    margin: 0 40px;
+  }
+  .sponsor-silver .sponsor-logo {
+    max-height: 50px;
+    max-width: 120px;
+  }
+  
+  .sponsors-track {
+    animation-duration: 35s;
+  }
+}
+
+@media (max-width: 768px) {
+  .sponsors-section {
+    padding: 30px 0;
+  }
+  
+  .sponsor-master {
+    height: 80px;
+    min-width: 160px;
+    margin: 0 50px;
+  }
+  .sponsor-master .sponsor-logo {
+    max-height: 65px;
+    max-width: 140px;
+  }
+
+  .sponsor-gold {
+    height: 70px;
+    min-width: 140px;
+    margin: 0 40px;
+  }
+  .sponsor-gold .sponsor-logo {
+    max-height: 55px;
+    max-width: 120px;
+  }
+
+  .sponsor-silver {
+    height: 60px;
+    min-width: 100px;
+    margin: 0 30px;
+  }
+  .sponsor-silver .sponsor-logo {
+    max-height: 40px;
+    max-width: 100px;
+  }
+  
+  .sponsors-track {
+    animation-duration: 30s;
+  }
+}
+
+@media (max-width: 480px) {
+  .sponsors-section {
+    padding: 20px 0;
+  }
+  
+  .sponsor-master {
+    height: 70px;
+    min-width: 140px;
+    margin: 0 40px;
+  }
+  .sponsor-master .sponsor-logo {
+    max-height: 55px;
+    max-width: 120px;
+  }
+
+  .sponsor-gold {
+    height: 60px;
+    min-width: 120px;
+    margin: 0 30px;
+  }
+  .sponsor-gold .sponsor-logo {
+    max-height: 45px;
+    max-width: 100px;
+  }
+
+  .sponsor-silver {
+    height: 50px;
+    min-width: 80px;
+    margin: 0 20px;
+  }
+  .sponsor-silver .sponsor-logo {
+    max-height: 35px;
+    max-width: 80px;
+  }
+  
+  .sponsors-track {
+    animation-duration: 25s;
+  }
+}
+
+/* Melhorar performance da animação */
+.sponsors-track {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0);
+}
+
+
