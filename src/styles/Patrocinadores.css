@@ -62,7 +62,7 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border-radius: 12px;
     overflow: hidden;
-    background: white;
+    background: transparent;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -78,7 +78,7 @@
     object-fit: contain;
     transition: filter 0.3s ease;
     padding: 0;
-    background: white;
+    background: transparent;
 }
 
 .patrocinadores-link:hover .patrocinadores-imagem {
@@ -102,7 +102,7 @@
 
 .patrocinadores-coluna-master .patrocinadores-link {
     border: 3px solid #8b2dc9;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: transparent;
 }
 
 .patrocinadores-coluna-master .patrocinadores-link:hover {
@@ -126,7 +126,7 @@
 
 .patrocinadores-coluna-ouro .patrocinadores-link {
     border: 2px solid #ffd700;
-    background: linear-gradient(135deg, #fffef7 0%, #fff9e6 100%);
+    background: transparent;
 }
 
 .patrocinadores-coluna-ouro .patrocinadores-link:hover {
@@ -143,13 +143,16 @@
 }
 
 .patrocinadores-imagem-prata {
+    width: 160px;              /* Defina a largura ideal */
+    height: 120px;              /* Defina a altura ideal */
+    object-fit: contain;       /* Garante que a imagem se ajuste sem cortar */
     border: 0.5px solid #c0c0c0;
     border-radius: 8px;
 }
 
 .patrocinadores-coluna-prata .patrocinadores-link {
     border: 0.5px solid #c0c0c0;
-    background: #ffffff;
+    background: transparent;
 }
 
 .patrocinadores-coluna-prata .patrocinadores-link:hover {
@@ -203,7 +206,7 @@
     
     .patrocinadores-coluna-prata .patrocinadores-link {
         border: 0.25px solid #c0c0c0;
-        background: #ffffff;
+        background: transparent;
     }
     }
 
@@ -263,7 +266,7 @@
     }
     .patrocinadores-coluna-prata .patrocinadores-link {
         border: 0.25px solid #c0c0c0;
-        background: #ffffff;
+        background: transparent;
     }
 }
 

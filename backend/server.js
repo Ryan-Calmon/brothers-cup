@@ -533,7 +533,7 @@ app.post("/inscricoes", async (req, res) => {
     const preferenceBody = {
       items: [
         {
-          title: `Inscrição Brothers Cup - ${representante} - ${parceiro} - ${categoria} `,
+          title: `Inscrição Brothers Cup - ${representante} e ${parceiro} - Categoria: ${categoria} `,
           unit_price: parseFloat(valorInscricao),
           quantity: 1,
           description: `Inscrição para a categoria ${categoria} - Pagamento via ${formaPagamento.toUpperCase()}`,

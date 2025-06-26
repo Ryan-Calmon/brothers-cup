@@ -15,12 +15,12 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/vaga-preenchida.png',
+      logo: '/images/logo-alma-de-cor.png',
       category: 'silver'
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/vaga-preenchida.png',
+      logo: '/images/logo-fm-distribuidora-2.png',
       category: 'silver'
     },
     {

@@ -1,3 +1,4 @@
+/* Container principal do carrossel */
 .sponsors-section {
   width: 100%;
   padding: 40px 0;
@@ -6,26 +7,16 @@
   position: relative;
 }
 
+/* Container de patrocinadores */
 .sponsors-container {
   width: 100%;
   overflow: hidden;
   position: relative;
-  mask: linear-gradient(
-    90deg,
-    transparent,
-    white 20%,
-    white 80%,
-    transparent
-  );
-  -webkit-mask: linear-gradient(
-    90deg,
-    transparent,
-    white 20%,
-    white 80%,
-    transparent
-  );
+  mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+  -webkit-mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
 }
 
+/* Track de patrocinadores (carrossel) */
 .sponsors-track {
   display: flex;
   align-items: center;
@@ -34,6 +25,7 @@
   will-change: transform;
 }
 
+/* Item individual do patrocinador */
 .sponsor-item {
   flex-shrink: 0;
   margin: 0 60px;
@@ -43,22 +35,22 @@
   /* Removido height e min-width padrão, serão definidos por categoria */
 }
 
+/* Logo do patrocinador */
 .sponsor-logo {
-  width: auto;
-  height: auto;
-  object-fit: contain;
+  width: auto; /* Ajusta a largura conforme o conteúdo */
+  height: auto; /* Ajusta a altura conforme o conteúdo */
+  object-fit: contain; /* Garante que a logo não seja distorcida */
   filter: grayscale(0%) brightness(1);
   transition: all 0.3s ease;
   user-select: none;
   pointer-events: none;
-  /* Removido max-height e max-width padrão, serão definidos por categoria */
 }
 
 .sponsor-logo:hover {
-  transform: scale(1.05);
+  transform: scale(1.05); /* Efeito de aumento ao passar o mouse */
 }
 
-/* Animação de rolagem horizontal infinita */
+/* Animação do carrossel */
 @keyframes scroll-horizontal {
   0% {
     transform: translateX(0);
@@ -81,20 +73,20 @@
 }
 
 .sponsor-master .sponsor-logo {
-  max-height: 100px; /* Maior tamanho do logo */
-  max-width: 220px;
+  max-height: 120px; /* Logo maior */
+  max-width: 250px; /* Logo maior */
 }
 
 /* Estilos para Patrocinador OURO */
 .sponsor-gold {
-  height: 100px; /* Altura média */
-  min-width: 200px; /* Largura média */
-  margin: 0 70px; /* Espaçamento médio */
+  height: 100px; /* Altura intermediária */
+  min-width: 200px; /* Largura intermediária */
+  margin: 0 70px; /* Espaçamento intermediário */
 }
 
 .sponsor-gold .sponsor-logo {
-  max-height: 80px; /* Tamanho médio do logo */
-  max-width: 180px;
+  max-height: 90px; /* Logo intermediária */
+  max-width: 200px; /* Logo intermediária */
 }
 
 /* Estilos para Patrocinador PRATA (tamanho padrão) */
@@ -105,8 +97,8 @@
 }
 
 .sponsor-silver .sponsor-logo {
-  max-height: 60px; /* Tamanho padrão do logo */
-  max-width: 150px;
+  max-height: 60px; /* Logo padrão */
+  max-width: 150px; /* Logo padrão */
 }
 
 /* Responsividade */
@@ -127,8 +119,8 @@
     margin: 0 50px;
   }
   .sponsor-gold .sponsor-logo {
-    max-height: 65px;
-    max-width: 140px;
+    max-height: 70px;
+    max-width: 150px;
   }
 
   .sponsor-silver {
@@ -167,8 +159,8 @@
     margin: 0 40px;
   }
   .sponsor-gold .sponsor-logo {
-    max-height: 55px;
-    max-width: 120px;
+    max-height: 60px;
+    max-width: 130px;
   }
 
   .sponsor-silver {
@@ -192,33 +184,33 @@
   }
   
   .sponsor-master {
-    height: 70px;
-    min-width: 140px;
+    height: 80px;
+    min-width: 160px;
     margin: 0 40px;
   }
   .sponsor-master .sponsor-logo {
-    max-height: 55px;
-    max-width: 120px;
+    max-height: 65px;
+    max-width: 130px;
   }
 
   .sponsor-gold {
-    height: 60px;
-    min-width: 120px;
+    height: 70px;
+    min-width: 140px;
     margin: 0 30px;
   }
   .sponsor-gold .sponsor-logo {
-    max-height: 45px;
-    max-width: 100px;
+    max-height: 55px;
+    max-width: 110px;
   }
 
   .sponsor-silver {
-    height: 50px;
-    min-width: 80px;
+    height: 60px;
+    min-width: 120px;
     margin: 0 20px;
   }
   .sponsor-silver .sponsor-logo {
-    max-height: 35px;
-    max-width: 80px;
+    max-height: 45px;
+    max-width: 90px;
   }
   
   .sponsors-track {
@@ -232,5 +224,3 @@
   perspective: 1000px;
   transform: translateZ(0);
 }
-
-

@@ -16,7 +16,7 @@ function Patrocinadores() {
         silver: [
             {
                 name: "Patrocinador Prata 1",
-                image: "/images/vaga-preenchida.png",
+                image: "/images/logo-fm-distribuidora.png",
                 instagram: "https://www.instagram.com/distribuidoradafm" // Substitua pelo link real
             },
             {
@@ -26,7 +26,7 @@ function Patrocinadores() {
             },
             {
                 name: "Patrocinador Prata 3",
-                image: "/images/vaga-preenchida.png",
+                image: "/images/logo-alma-de-cor.png",
                 instagram: "https://www.instagram.com/almadecoresmalteria" // Substitua pelo link real
             },
             {
