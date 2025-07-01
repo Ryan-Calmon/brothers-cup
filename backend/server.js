@@ -848,7 +848,9 @@ app.get("/categorias", authenticateToken, authorizeRoles(["admin"]), async (req,
     res.status(500).json({ message: "Erro ao buscar categorias" });
   }
 });
-
+app.get("/health", (req, res) => {
+    res.status(200).send("OK");
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
