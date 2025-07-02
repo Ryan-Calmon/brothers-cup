@@ -5,7 +5,7 @@ const SponsorsCarousel = () => {
   const sponsors = [
     {
       name: 'Patrocinador Master',
-      logo: '/images/vaga-preenchida.png',
+      logo: '/images/VAGA-DISPONIVEL.png',
       category: 'master'
     },
     {
@@ -25,7 +25,7 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/vaga-preenchida.png',
+      logo: '/images/logo-acai.jpg',
       category: 'silver'
     },
     {

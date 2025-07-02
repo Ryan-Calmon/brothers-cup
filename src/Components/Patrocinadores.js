@@ -5,7 +5,7 @@ function Patrocinadores() {
     const patrocinadores = {
         master: {
             name: "Patrocinador Master",
-            image: "/images/vaga-preenchida.png",
+            image: "/images/VAGA-DISPONIVEL.png",
             instagram: "https://www.instagram.com/brotherscup_ftv" // Substitua pelo link real
         },
         gold: {
@@ -31,8 +31,8 @@ function Patrocinadores() {
             },
             {
                 name: "Patrocinador Prata 4",
-                image: "/images/VAGA-DISPONIVEL.png",
-                instagram: "https://www.instagram.com/brotherscup_ftv" // Substitua pelo link real
+                image: "/images/logo-acai.jpg",
+                instagram: "https://www.instagram.com/acaipointdasul" // Substitua pelo link real
             },
             {
                 name: "Patrocinador Prata 5",

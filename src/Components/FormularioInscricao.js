@@ -61,7 +61,7 @@ function FormularioInscricao() {
 
   // Função para calcular o valor baseado na forma de pagamento
   const getValorInscricao = () => {
-    return formaPagamento === 'cartao' ? 263 : 5;
+    return formaPagamento === 'cartao' ? 263 : 250;
   };
 
   // Função para verificar se o botão deve estar desabilitado
