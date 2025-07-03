@@ -10,7 +10,7 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Ouro',
-      logo: '/images/vaga-preenchida.png',
+      logo: '/images/logo-flying-horse-white.png',
       category: 'gold'
     },
     {
@@ -24,6 +24,11 @@ const SponsorsCarousel = () => {
       category: 'silver'
     },
     {
+      name: 'Patrocinador Master',
+      logo: '/images/VAGA-DISPONIVEL.png',
+      category: 'master'
+    },
+    {
       name: 'Patrocinador Prata',
       logo: '/images/logo-acai.jpg',
       category: 'silver'
@@ -34,6 +39,11 @@ const SponsorsCarousel = () => {
       category: 'silver'
     },
     {
+      name: 'Patrocinador Ouro',
+      logo: '/images/logo-flying-horse-white.png',
+      category: 'gold'
+    },
+    {
       name: 'Patrocinador Prata',
       logo: '/images/VAGA-DISPONIVEL.png',
       category: 'silver'
@@ -42,6 +52,16 @@ const SponsorsCarousel = () => {
       name: 'Patrocinador Prata',
       logo: '/images/VAGA-DISPONIVEL.png',
       category: 'silver'
+    },
+    {
+      name: 'Patrocinador Master',
+      logo: '/images/VAGA-DISPONIVEL.png',
+      category: 'master'
+    },
+       {
+      name: 'Patrocinador Ouro',
+      logo: '/images/logo-flying-horse-white.png',
+      category: 'gold'
     },
     {
       name: 'Patrocinador Prata',

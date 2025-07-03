@@ -10,7 +10,7 @@ function Patrocinadores() {
         },
         gold: {
             name: "Patrocinador Ouro",
-            image: "/images/vaga-preenchida.png",
+            image: "/images/logo-flying-horse-white.png",
             instagram: "https://www.instagram.com/flyinghorse" // Substitua pelo link real
         },
         silver: [
