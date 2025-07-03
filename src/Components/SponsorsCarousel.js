@@ -10,7 +10,7 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Ouro',
-      logo: '/images/logo-flying-horse-white.png',
+      logo: '/images/logo-flying-horse-branco.png',
       category: 'gold'
     },
     {
@@ -40,7 +40,7 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Ouro',
-      logo: '/images/logo-flying-horse-white.png',
+      logo: '/images/logo-flying-horse-branco.png',
       category: 'gold'
     },
     {
@@ -60,7 +60,7 @@ const SponsorsCarousel = () => {
     },
        {
       name: 'Patrocinador Ouro',
-      logo: '/images/logo-flying-horse-white.png',
+      logo: '/images/logo-flying-horse-branco.png',
       category: 'gold'
     },
     {
