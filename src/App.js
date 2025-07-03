@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './Components/Header';
 import Home from './Components/Home';
 import PrimeiraEtapa from './Components/PrimeiraEtapa';
@@ -16,35 +16,23 @@ import SponsorsCarousel from './Components/SponsorsCarousel';
 import Patrocinadores from './Components/Patrocinadores';
 import './App.css';
 
-
-
-
 function App() {
-  // Inicializa isAuthenticated verificando se há um token no localStorage
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('adminToken') ? true : false;
+    // Verifica se há um token no localStorage na inicialização
+    return !!localStorage.getItem('adminToken');
   });
 
-  // Adiciona um useEffect para reagir a mudanças no localStorage (se necessário, embora o LoginPage já lide com isso)
-  useEffect(() => {
-    const checkAuth = () => {
-      setIsAuthenticated(localStorage.getItem('adminToken') ? true : false);
-    };
-    // Opcional: Adicionar um listener para o evento storage, caso o token seja removido em outra aba/janela
-    window.addEventListener('storage', checkAuth);
-    return () => {
-      window.removeEventListener('storage', checkAuth);
-    };
-  }, []);
-
+  // Função para ser passada para LoginPage para atualizar o estado de autenticação
   const handleLogin = () => {
     setIsAuthenticated(true);
   };
 
+  // Função para lidar com o logout
   const handleLogout = () => {
-    localStorage.removeItem('adminToken'); // Remove o token ao deslogar
-    localStorage.removeItem('adminUser'); // Remove o usuário ao deslogar
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
     setIsAuthenticated(false);
+    // O redirecionamento para /login acontecerá automaticamente devido à mudança de estado
   };
 
   return (
@@ -95,8 +83,11 @@ function App() {
             </div>
           } />
 
+          {/* Rota para a página de login, passando a função handleLogin */}
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-           <Route path="/sucesso" element={<Sucesso onLogin={handleLogin} />} />
+          <Route path="/sucesso" element={<Sucesso onLogin={handleLogin} />} />
+
+          {/* Rota protegida para a área de administração */}
           <Route
             path="/admin"
             element={

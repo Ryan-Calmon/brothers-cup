@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/LoginPage.css';
 
-function LoginPage() {
+// Recebe a prop onLogin do componente pai (App.js)
+function LoginPage({ onLogin }) {
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -13,8 +14,8 @@ function LoginPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value
     }));
     // Limpar erro quando o usuário começar a digitar
@@ -51,7 +52,11 @@ function LoginPage() {
         localStorage.setItem('adminToken', data.token);
         localStorage.setItem('adminUser', JSON.stringify(data.user));
         
-        // Redirecionar para a página de administração
+        // *** CHAMA A FUNÇÃO onLogin PASSADA PELO App.js ***
+        // Isso informa ao App.js que o login foi bem-sucedido e atualiza o estado de autenticação.
+        onLogin(); 
+        
+        // Redireciona para a página de administração
         navigate('/admin');
       } else {
         // Login falhou
@@ -144,4 +149,5 @@ function LoginPage() {
 }
 
 export default LoginPage;
+
 
