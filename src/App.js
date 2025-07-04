@@ -16,7 +16,17 @@ import SponsorsCarousel from './Components/SponsorsCarousel';
 import Patrocinadores from './Components/Patrocinadores';
 import './App.css';
 
+// 1. Importe o Clarity
+import Clarity from '@microsoft/clarity';
+
 function App() {
+  const projectId = 's9fs2d34fp';
+
+  // 3. Inicialize o Clarity (idealmente, apenas em ambiente de produção)
+  if (process.env.NODE_ENV === 'production') {
+    Clarity.init(projectId);
+  }
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     // Verifica se há um token no localStorage na inicialização
     return !!localStorage.getItem('adminToken');
@@ -109,5 +119,3 @@ function App() {
 }
 
 export default App;
-
-
