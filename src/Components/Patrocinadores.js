@@ -21,7 +21,7 @@ function Patrocinadores() {
             },
             {
                 name: "Patrocinador Prata 2",
-                image: "/images/vaga-preenchida.png",
+                image: "/images/logo -playfitness.png",
                 instagram: "https://www.instagram.com/playfitness.academia" // Substitua pelo link real
             },
             {

@@ -35,7 +35,7 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      logo: '/images/logo -playfitness.png',
       category: 'silver'
     },
     {
