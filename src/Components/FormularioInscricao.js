@@ -332,11 +332,13 @@ function FormularioInscricao() {
                   <option>M Masculino</option>
                   <option>G Masculino</option>
                   <option>GG Masculino</option>
+                  <option>XG Masculino</option>
                   <option>PP Feminino</option>
                   <option>P Feminino</option>
                   <option>M Feminino</option>
                   <option>G Feminino</option>
                   <option>GG Feminino</option>
+                  <option>XG Feminino</option>
                 </select>
               </div>
               <div className='col-12 col-md-6'>
@@ -353,11 +355,13 @@ function FormularioInscricao() {
                   <option>M Masculino</option>
                   <option>G Masculino</option>
                   <option>GG Masculino</option>
+                  <option>XG Masculino</option>
                   <option>PP Feminino</option>
                   <option>P Feminino</option>
                   <option>M Feminino</option>
                   <option>G Feminino</option>
                   <option>GG Feminino</option>
+                  <option>XG Feminino</option>
                 </select>
               </div>
             </div>

@@ -242,6 +242,8 @@ function AdminPage() {
       'Instagram Parceiro': i.instagram_parceiro,
       'CT Representante': i.ct_representante,
       'CT Parceiro': i.ct_parceiro,
+      'Tamanho Representante': i.uniforme_representante,
+      'Tamanho Parceiro': i.uniforme_representante,
       'Data Inscrição': i.data_inscricao,
       'Status Pagamento': i.status_pagamento
     }));
@@ -426,6 +428,8 @@ function AdminPage() {
                   <th>Instagram Parc.</th>
                   <th>CT Rep.</th>
                   <th>CT Parc.</th>
+                  <th>Tam Rep.</th>
+                  <th>Tam Parc.</th>
                   <th>Categoria</th>
                   <th>Data</th>
                   <th>Status</th>
@@ -446,6 +450,8 @@ function AdminPage() {
                     <td className="instagram-cell">@{inscricao.instagram_parceiro}</td>
                     <td className="ct-cell">{inscricao.ct_representante || '-'}</td>
                     <td className="ct-cell">{inscricao.ct_parceiro || '-'}</td>
+                    <td className="tam-cell">{inscricao.uniforme_representante}</td>
+                    <td className="tam-cell">{inscricao.uniforme_parceiro}</td>
                     <td className="category-cell">{inscricao.categoria}</td>
                     <td className="date-cell">{new Date(inscricao.data_inscricao).toLocaleDateString('pt-BR')}</td>
                     <td className="status-cell">
@@ -607,11 +613,13 @@ function AdminPage() {
                     <option value="M Masculino">M Masculino</option>
                     <option value="G Masculino">G Masculino</option>
                     <option value="GG Masculino">GG Masculino</option>
+                    <option value="XG Masculino">XG Masculino</option>
                     <option value="PP Feminino">PP Feminino</option>
                     <option value="P Feminino">P Feminino</option>
                     <option value="M Feminino">M Feminino</option>
                     <option value="G Feminino">G Feminino</option>
                     <option value="GG Feminino">GG Feminino</option>
+                    <option value="XG Feminino">XG Feminino</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -628,11 +636,13 @@ function AdminPage() {
                     <option value="M Masculino">M Masculino</option>
                     <option value="G Masculino">G Masculino</option>
                     <option value="GG Masculino">GG Masculino</option>
+                    <option value="XG Masculino">XG Masculino</option>
                     <option value="PP Feminino">PP Feminino</option>
                     <option value="P Feminino">P Feminino</option>
                     <option value="M Feminino">M Feminino</option>
                     <option value="G Feminino">G Feminino</option>
                     <option value="GG Feminino">GG Feminino</option>
+                    <option value="XG Feminino">XG Feminino</option>
                   </select>
                 </div>
               </div>
