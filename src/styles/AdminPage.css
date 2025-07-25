@@ -452,6 +452,34 @@
 .status-cell { width: 10%; }
 .actions-cell { width: 10%; text-align: center; }
 
+.export-all-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ff9800; /* Laranja */
+}
+
+.export-all-button:hover {
+  background-color: #f57c00; /* Laranja mais escuro no hover */
+  transform: translateY(-2px);
+}
+
+/* Garanta que os outros botões mantenham seus estilos */
+.export-button {
+  background-color: #4CAF50; /* Verde */
+}
+
+.export-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
 /* Badges de Status */
 .status-badge {
   padding: 5px 10px;

@@ -230,6 +230,31 @@ function AdminPage() {
     fetchServerStatus();
   };
 
+    const exportarTodosExcel = () => {
+      // Usar a lista completa de inscrições, sem filtro
+      const dados = inscricoes.map(i => ({
+        ID: i.id,
+        Representante: i.representante,
+        Parceiro: i.parceiro,
+        Categoria: i.categoria,
+        Celular: i.celular,
+        'Instagram Representante': i.instagram_representante,
+        'Instagram Parceiro': i.instagram_parceiro,
+        'CT Representante': i.ct_representante,
+        'CT Parceiro': i.ct_parceiro,
+        'Tamanho Representante': i.uniforme_representante,
+        'Tamanho Parceiro': i.uniforme_parceiro, 
+        'Data Inscrição': new Date(i.data_inscricao).toLocaleDateString('pt-BR'), 
+        'Status Pagamento': i.status_pagamento
+      }));
+      
+      const ws = XLSX.utils.json_to_sheet(dados);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Todas as Inscrições'); 
+      
+      // Nome do arquivo
+      XLSX.writeFile(wb, `inscricoes_todas_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
   const exportarExcel = () => {
     const pagos = inscricoes.filter(i => i.status_pagamento === 'approved');
     const dados = pagos.map(i => ({
@@ -243,7 +268,7 @@ function AdminPage() {
       'CT Representante': i.ct_representante,
       'CT Parceiro': i.ct_parceiro,
       'Tamanho Representante': i.uniforme_representante,
-      'Tamanho Parceiro': i.uniforme_representante,
+      'Tamanho Parceiro': i.uniforme_parceiro,
       'Data Inscrição': i.data_inscricao,
       'Status Pagamento': i.status_pagamento
     }));
@@ -403,6 +428,9 @@ function AdminPage() {
           </button>
           <button className="export-button" onClick={exportarExcel}>
             📊 Exportar Pagos
+          </button>
+            <button className="export-all-button" onClick={exportarTodosExcel}>
+            📋 Exportar Todos
           </button>
         </div>
       </div>
