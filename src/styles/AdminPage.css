@@ -462,12 +462,24 @@
   align-items: center;
   gap: 5px;
 }
+.pago {
+  background-color: #4CAF50 !important; 
+}
 
+.pago:hover {
+  background-color: #3a6a3a !important;
+}
 .status-badge.aprovado {
   background-color: #4CAF50; /* Verde */
   color: white;
 }
+.metade-pago {
+  background-color: #8a6d00 !important; /* Um tom de amarelo/dourado escuro */
+}
 
+.metade-pago:hover {
+  background-color: #a18100 !important; /* Um pouco mais claro no hover */
+}
 .status-badge.pendente {
   background-color: #ffc107; /* Amarelo */
   color: #333;

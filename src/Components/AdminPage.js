@@ -258,6 +258,8 @@ function AdminPage() {
     switch (status) {
       case 'approved':
         return '✅';
+      case 'metade_pago':
+      return '💰';
       case 'pendente':
         return '⏳';
       case 'rejeitado':
@@ -440,7 +442,11 @@ function AdminPage() {
                 {filteredInscricoes.map(inscricao => (
                   <tr 
                     key={inscricao.id} 
-                    className={inscricao.status_pagamento === 'approved' ? 'pago' : ''}
+                       className={
+                        inscricao.status_pagamento === 'approved' ? 'pago' :
+                        inscricao.status_pagamento === 'metade_pago' ? 'metade-pago' : ''
+                      }
+                    
                   >
                     <td className="id-cell">{inscricao.id}</td>
                     <td className="name-cell">{inscricao.representante}</td>
@@ -658,6 +664,7 @@ function AdminPage() {
                   >
                     <option value="pendente">Pendente</option>
                     <option value="approved">Aprovado</option>
+                    <option value="metade_pago">Metade Pago</option> 
                     <option value="rejeitado">Rejeitado</option>
                   </select>
                 </div>
