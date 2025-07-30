@@ -106,7 +106,7 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
                               <div className="progress-bar">
                                 <div 
                                   className="progress-fill"
-                                  style={{ width: `${porcentagemPaga}%` }}
+                                  style={{ width: `${porcentagemInscricoes}%` }}
                                 ></div>
                               </div>
                               <span className="progress-text">
