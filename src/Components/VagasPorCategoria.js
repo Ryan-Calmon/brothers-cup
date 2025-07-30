@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './VagasPorCategoria.css';
+import '../styles/VagasPorCategoria.css';
 
 const VagasPorCategoria = ({ inscricoes, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
