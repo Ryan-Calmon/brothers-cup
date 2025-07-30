@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/AdminPage.css';
 import * as XLSX from 'xlsx';
+import VagasPorCategoria from './VagasPorCategoria';
 
 function AdminPage() {
   const [inscricoes, setInscricoes] = useState([]);
@@ -432,6 +433,7 @@ function AdminPage() {
             <button className="export-all-button" onClick={exportarTodosExcel}>
             📋 Exportar Todos
           </button>
+          <VagasPorCategoria inscricoes={inscricoes} />
         </div>
       </div>
 
