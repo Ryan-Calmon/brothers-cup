@@ -59,7 +59,7 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
         onClick={handleToggleVisibility}
         title="Ver estatísticas por categoria"
       >
-        📊 Vagas por Categoria
+        📊 Vagas por Categorias
       </button>
 
       {/* Modal com as estatísticas */}
@@ -85,7 +85,8 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
                     {Object.entries(estatisticas)
                       .sort(([a], [b]) => a.localeCompare(b))
                       .map(([categoria, dados]) => {
-                        const porcentagemPaga = dados.total > 0 ? (dados.pagas / dados.total) * 100 : 0;
+                        const maxInscricoes = Math.max(...Object.values(estatisticas).map(cat => cat.total));
+                        const porcentagemInscricoes = maxInscricoes > 0 ? (dados.total / maxInscricoes) * 100 : 0;
                         
                         return (
                           <div key={categoria} className="categoria-item">
@@ -109,7 +110,7 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
                                 ></div>
                               </div>
                               <span className="progress-text">
-                                {porcentagemPaga.toFixed(1)}% pagas
+                                {dados.total} duplas
                               </span>
                             </div>
                           </div>
