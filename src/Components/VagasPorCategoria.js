@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
-import '../styles/VagasPorCategoria.css';
+import './VagasPorCategoria.css';
 
 const VagasPorCategoria = ({ inscricoes, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
+
+  // Capacidades máximas por categoria
+  const capacidadesPorCategoria = {
+    'Escolinha': 24,
+    'Misto Escolinha': 24,
+    'Feminino Iniciante': 16,
+    'Masculino Iniciante': 16,
+    'Masculino Intermediário': 16,
+    'Misto Iniciante': 16,
+    'Misto Intermediário': 16,
+    'Open': 16
+  };
 
   // Função para calcular estatísticas por categoria
   const calcularEstatisticasPorCategoria = () => {
@@ -59,7 +71,7 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
         onClick={handleToggleVisibility}
         title="Ver estatísticas por categoria"
       >
-        📊 Vagas por Categorias
+        📊 Vagas por Categoria
       </button>
 
       {/* Modal com as estatísticas */}
@@ -85,6 +97,7 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
                     {Object.entries(estatisticas)
                       .sort(([a], [b]) => a.localeCompare(b))
                       .map(([categoria, dados]) => {
+                        // Encontrar o máximo de inscrições entre todas as categorias para calcular a porcentagem
                         const maxInscricoes = Math.max(...Object.values(estatisticas).map(cat => cat.total));
                         const porcentagemInscricoes = maxInscricoes > 0 ? (dados.total / maxInscricoes) * 100 : 0;
                         
