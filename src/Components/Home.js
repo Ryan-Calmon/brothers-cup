@@ -1,6 +1,6 @@
 import React from "react";
-import ImagemBanner from "../images/Feed.webp";
-import ImagemBannerPC from "../images/Feed.webp";
+import ImagemBanner from "../images/Cronograma-Final.png";
+import ImagemBannerPC from "../images/Cronograma-Final.png";
 import "../styles/home.css";
 function Home(){
 
