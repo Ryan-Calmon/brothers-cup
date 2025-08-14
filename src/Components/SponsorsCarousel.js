@@ -4,8 +4,8 @@ import '../styles/SponsorsCarousel.css';
 const SponsorsCarousel = () => {
   const sponsors = [
     {
-      name: 'Patrocinador Master',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      name: 'Patrocinador Ouro',
+      logo: '/images/JAPA-NIGHT.png',
       category: 'master'
     },
     {
@@ -24,8 +24,8 @@ const SponsorsCarousel = () => {
       category: 'silver'
     },
     {
-      name: 'Patrocinador Master',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      name: 'Patrocinador Ouro',
+      logo: '/images/JAPA-NIGHT.png',
       category: 'master'
     },
     {
@@ -45,17 +45,17 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      logo: '/images/PokerdOBetão.png',
       category: 'silver'
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      logo: '/images/Rangel-Tatoo.png',
       category: 'silver'
     },
     {
-      name: 'Patrocinador Master',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      name: 'Patrocinador Ouro',
+      logo: '/images/JAPA-NIGHT.png',
       category: 'master'
     },
        {
@@ -65,12 +65,12 @@ const SponsorsCarousel = () => {
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      logo: '/images/casadocelular.png',
       category: 'silver'
     },
     {
       name: 'Patrocinador Prata',
-      logo: '/images/VAGA-DISPONIVEL.png',
+      logo: '/images/PokerdOBetão.png',
       category: 'silver'
     }
   ];

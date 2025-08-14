@@ -3,16 +3,18 @@ import '../styles/Patrocinadores.css';
 function Patrocinadores() {
     // Array com dados dos patrocinadores e seus links do Instagram
     const patrocinadores = {
-        master: {
-            name: "Patrocinador Master",
-            image: "/images/VAGA-DISPONIVEL.png",
-            instagram: "https://www.instagram.com/brotherscup_ftv" // Substitua pelo link real
-        },
-        gold: {
+        gold: [
+            {
             name: "Patrocinador Ouro",
             image: "/images/logo-flying-horse-branco.webp",
             instagram: "https://www.instagram.com/flyinghorse" // Substitua pelo link real
-        },
+            },
+            {
+            name: "Patrocinador Ouro",
+            image: "/images/JAPA-NIGHT.png",
+            instagram: "https://www.instagram.com/japa_night" // Substitua pelo link real
+            }
+        ],
         silver: [
             {
                 name: "Patrocinador Prata 1",
@@ -36,23 +38,23 @@ function Patrocinadores() {
             },
             {
                 name: "Patrocinador Prata 5",
-                image: "/images/VAGA-DISPONIVEL.png",
+                image: "/images/PokerdOBetão.png",
                 instagram: "https://www.instagram.com/brotherscup_ftv" // Substitua pelo link real
             },
             {
                 name: "Patrocinador Prata 6",
-                image: "/images/VAGA-DISPONIVEL.png",
+                image: "/images/PokerdOBetão.png",
                 instagram: "https://www.instagram.com/brotherscup_ftv" // Substitua pelo link real
             },
             {
                 name: "Patrocinador Prata 7",
-                image: "/images/VAGA-DISPONIVEL.png",
-                instagram: "https://www.instagram.com/brotherscup_ftv" // Substitua pelo link real
+                image: "/images/Rangel-Tatoo.png",
+                instagram: "https://www.instagram.com/rangell.tattoo" // Substitua pelo link real
             },
             {
                 name: "Patrocinador Prata 8",
-                image: "/images/VAGA-DISPONIVEL.png",
-                instagram: "https://www.instagram.com/brotherscup_ftv" // Substitua pelo link real
+                image: "/images/casadocelular.png",
+                instagram: "https://www.instagram.com/casadocelularmeier" // Substitua pelo link real
             }
         ]
     };
