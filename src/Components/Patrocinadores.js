@@ -6,7 +6,7 @@ function Patrocinadores() {
         master:[
               {
             name: "Patrocinador MASTER",
-            image: "/images/BYD_Logo_Branco.png",
+            image: "/images/bydlogo.png",
             instagram: "https://www.instagram.com/itavemabyd" // Substitua pelo link real
             },
         ],

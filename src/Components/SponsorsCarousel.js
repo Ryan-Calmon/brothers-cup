@@ -5,7 +5,7 @@ const SponsorsCarousel = () => {
   const sponsors = [
       {
       name: 'Patrocinador MASTER',
-      logo: '/images//images/BYD_Logo_Branco.png"',
+      logo: '/images//images/bydlogo.png.png"',
       category: 'master'
     },
     {
@@ -45,7 +45,7 @@ const SponsorsCarousel = () => {
     },
      {
       name: 'Patrocinador MASTER',
-      logo: '/images//images/BYD_Logo_Branco.png"',
+      logo: '/images//images/bydlogo.png.png"',
       category: 'master'
     },
     {
@@ -65,7 +65,7 @@ const SponsorsCarousel = () => {
     },
      {
       name: 'Patrocinador MASTER',
-      logo: '/images//images/BYD_Logo_Branco.png"',
+      logo: '/images//images/bydlogo.png.png"',
       category: 'master'
     },
     {
@@ -76,7 +76,7 @@ const SponsorsCarousel = () => {
     {
       name: 'Patrocinador Ouro',
       logo: '/images/JAPA-NIGHT.png',
-      category: 'mgold'
+      category: 'gold'
     },
        {
       name: 'Patrocinador Ouro',
@@ -85,7 +85,7 @@ const SponsorsCarousel = () => {
     },
      {
       name: 'Patrocinador MASTER',
-      logo: '/images//images/BYD_Logo_Branco.png"',
+      logo: '/images//images/bydlogo.png.png"',
       category: 'master'
     },
     {
