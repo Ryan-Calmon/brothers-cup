@@ -3,6 +3,13 @@ import '../styles/Patrocinadores.css';
 function Patrocinadores() {
     // Array com dados dos patrocinadores e seus links do Instagram
     const patrocinadores = {
+        master:[
+              {
+            name: "Patrocinador MASTER",
+            image: "/images/BYD_Logo_Branco.png",
+            instagram: "https://www.instagram.com/itavemabyd" // Substitua pelo link real
+            },
+        ],
         gold: [
             {
             name: "Patrocinador Ouro",

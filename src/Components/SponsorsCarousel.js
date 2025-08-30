@@ -3,10 +3,15 @@ import '../styles/SponsorsCarousel.css';
 
 const SponsorsCarousel = () => {
   const sponsors = [
+      {
+      name: 'Patrocinador MASTER',
+      logo: '/images//images/BYD_Logo_Branco.png"',
+      category: 'master'
+    },
     {
       name: 'Patrocinador Ouro',
       logo: '/images/JAPA-NIGHT.png',
-      category: 'master'
+      category: 'gold'
     },
     {
       name: 'Patrocinador Ouro',
@@ -18,6 +23,11 @@ const SponsorsCarousel = () => {
       logo: '/images/logo-alma-de-cor.png',
       category: 'silver'
     },
+     {
+      name: 'Patrocinador MASTER',
+      logo: '/images//images/BYD_Logo_Branco.png"',
+      category: 'master'
+    },
     {
       name: 'Patrocinador Prata',
       logo: '/images/logo-fm-distribuidora-2.png',
@@ -26,12 +36,17 @@ const SponsorsCarousel = () => {
     {
       name: 'Patrocinador Ouro',
       logo: '/images/JAPA-NIGHT.png',
-      category: 'master'
+      category: 'gold'
     },
     {
       name: 'Patrocinador Prata',
       logo: '/images/logo-acai.jpg',
       category: 'silver'
+    },
+     {
+      name: 'Patrocinador MASTER',
+      logo: '/images//images/BYD_Logo_Branco.png"',
+      category: 'master'
     },
     {
       name: 'Patrocinador Prata',
@@ -48,6 +63,11 @@ const SponsorsCarousel = () => {
       logo: '/images/PokerdOBetão.png',
       category: 'silver'
     },
+     {
+      name: 'Patrocinador MASTER',
+      logo: '/images//images/BYD_Logo_Branco.png"',
+      category: 'master'
+    },
     {
       name: 'Patrocinador Prata',
       logo: '/images/Rangel-Tatoo.png',
@@ -56,12 +76,17 @@ const SponsorsCarousel = () => {
     {
       name: 'Patrocinador Ouro',
       logo: '/images/JAPA-NIGHT.png',
-      category: 'master'
+      category: 'mgold'
     },
        {
       name: 'Patrocinador Ouro',
       logo: '/images/logo-flying-horse-branco.webp',
       category: 'gold'
+    },
+     {
+      name: 'Patrocinador MASTER',
+      logo: '/images//images/BYD_Logo_Branco.png"',
+      category: 'master'
     },
     {
       name: 'Patrocinador Prata',
