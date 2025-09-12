@@ -5,7 +5,7 @@ const tabelas = [
   { nome: "Escolinha", link: "https://challonge.com/pt_BR/brotherscup_escolinha/module" },
   { nome: "Masculino Iniciante", link: "https://challonge.com/pt_BR/brotherscup_mascIniciante/module" },
   { nome: "Masculino Intermediário", link: "https://challonge.com/pt_BR/brotherscup_mascInterMed/module" },
-  { nome: "Misto Iniciante", link: "https://challonge.com/pt_BR/brotherscup_mistoInic/module" },
+  { nome: "Misto Iniciante", link: "https://challonge.com/pt_BR/brotherscupMistoIniciante/module" },
   { nome: "Misto Escolinha", link: "https://challonge.com/pt_BR/brotherscup_mistoEscolinha/module" },
   { nome: "Misto Intermediário", link: "https://challonge.com/pt_BR/brotherscup_mistoIntermed/module" },
   { nome: "Feminino Iniciante", link: "https://challonge.com/pt_BR/brotherscup_femIniciante/module" },
