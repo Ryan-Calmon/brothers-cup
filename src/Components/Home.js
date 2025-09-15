@@ -16,10 +16,14 @@ function Home() {
           FOTOS DO DIA 1
         </a>
 
-        {/* Botão 2: Desabilitado, para o segundo dia */}
-        <button className="btn btn-em-breve" disabled>
-          FOTOS DIA 2 - EM BREVE
-        </button>
+        <a
+          href="https://drive.google.com/drive/folders/1pZuEdsrrDzbzJtZTqnDdBrlau6UboXI0?fbclid=PAZXh0bgNhZW0CMTEAAadQu7Y2RFwIQEh8vSLReHPDMNkNxw7oUyNikY0_PqlYxipeRmspJItUlz4Jww_aem_5IFqGSvrOgK3WbGPFNHedQ" // <-- TROQUE PELO LINK REAL
+          target="_blank" // Abre o link em uma nova aba
+          rel="noopener noreferrer" // Boa prática de segurança para links
+          className="btn btn-fotos"
+        >
+          FOTOS DO DIA 2
+        </a>
       </div>
     </div>
    );
