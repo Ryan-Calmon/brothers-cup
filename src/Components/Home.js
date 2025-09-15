@@ -1,21 +1,28 @@
 import React from "react";
-import ImagemBanner from "../images/Cronograma-Final.png";
-import ImagemBannerPC from "../images/Cronograma-Final.png";
-import "../styles/home.css";
-function Home(){
+import "../styles/home.css"; // Mantenha a importação do seu CSS
 
+function Home() {
+  return (
+    <div className="home-container">
+        <h1 className="titulohome">FOTOS SEGUNDA ETAPA</h1>
+      <div className="botoes-container">
+        {/* Botão 1: Link para as fotos do primeiro dia */}
+        <a
+          href="https://drive.google.com/drive/folders/1IPlbyE8pnIJrxYVrnZ31pO8SJZPWXZDo?fbclid=PAZXh0bgNhZW0CMTEAAaecLruTxQJZXSCcoROojVuntvNwx2WyM8OA5G1XACqXVS7c5Yu_03f7oDTT_A_aem_NP5NfgJHvy2RNI93dPadLw" // <-- TROQUE PELO LINK REAL
+          target="_blank" // Abre o link em uma nova aba
+          rel="noopener noreferrer" // Boa prática de segurança para links
+          className="btn btn-fotos"
+        >
+          FOTOS DO DIA 1
+        </a>
 
-
-    return(
-    <div>
-        <div className="home-container">
-            <div className="foto-container">
-                <img className="foto-divulgacao" src={ImagemBanner} />
-                 <img className="foto-divulgacao-pc" src={ImagemBannerPC} />
-            </div>
-        </div>
-
+        {/* Botão 2: Desabilitado, para o segundo dia */}
+        <button className="btn btn-em-breve" disabled>
+          FOTOS DIA 2 - EM BREVE
+        </button>
+      </div>
     </div>
-    );
+   );
 }
+
 export default Home;

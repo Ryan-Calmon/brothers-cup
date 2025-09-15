@@ -1,69 +1,101 @@
+/* ======================================================= */
+/*          home.css - VERSÃO COM ALTA ESPECIFICIDADE      */
+/* ======================================================= */
+
+/* --- Configuração Geral e Fundo --- */
+body {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Usamos .home-container para aumentar a especificidade de todas as regras filhas */
 .home-container {
-    display: flex;
-    justify-content: center;
-    padding: 20px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 90vh;
+  box-sizing: border-box;
+  text-align: center;
 }
 
-.foto-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    max-width: 500px;
-
-}
-.foto-container img{
-    filter: grayscale(0);
-}
-.foto-divulgacao {
-    width: 100%; /* Garante que a imagem ocupe toda a largura do container */
-    height: auto; /* Mantém a proporção da imagem */
-    display: block;
-    border-radius: 10px; /* Para a imagem ter cantos arredondados */
-}
-.foto-divulgacao-pc {
-    width: 100%; /* Garante que a imagem de PC ocupe toda a largura da div */
-    height: auto; /* Mantém a proporção da imagem */
-    border-radius: 10px; /* Garantir os cantos arredondados */
-    display: block; /* Garante que a imagem se comporte corretamente */
+/* --- Estilo do Título Principal --- */
+/* Regra: .home-container h1.titulohome (Mais específico que apenas .titulohome) */
+.home-container .titulohome {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 3rem;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
 }
 
-@property --angle{
-    syntax: "<angle>" ;
-    initial-value: 0deg;
-    inherits: false;
-}
-.foto-container::after, .foto-container::before {
-    content: '';
-    position: absolute;
-    top: -5px;  /* Faz a borda sair para fora */
-    left: -5px; /* Faz a borda sair para fora */
-    right: -5px; /* Faz a borda sair para fora */
-    bottom: -5px; /* Faz a borda sair para fora */
-    border-radius: 10px; /* Deixa a borda arredondada, como a imagem */
-    background-image: conic-gradient(from var(--angle), transparent 50%, rgb(115, 53, 209));
-    z-index: -1;
-    animation: 3s spin linear infinite;
-}
-.foto-container::before {
-    filter: blur(1.5rem);
-    opacity: 0.6;
+/* --- Container dos Botões --- */
+.home-container .botoes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 450px;
 }
 
-@keyframes spin{
-    from{
-        --angle: 0deg;
-    }
-    to{
-        --angle: 360deg;
-    }
+/* --- Estilo Base dos Botões (Design "Vazado") --- */
+/* Regra: .home-container .btn (Mais específico que apenas .btn) */
+.home-container .btn {
+  background-color: transparent !important; /* !important para garantir a sobreposição */
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.8) !important; /* !important para garantir a sobreposição */
+  padding: 18px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #2d0d5c !important;
 }
-@media screen and (max-width:768px) {
-    .foto-divulgacao-pc{
-        display: none;
-    }
+
+/* --- Efeito Hover para o Botão Ativo --- */
+/* Regra: .home-container .btn-fotos:hover (Mais específico) */
+.home-container .btn-fotos:hover {
+  background-color: #7335d1 !important; /* !important para garantir a sobreposição */
+  border-color: #7335d1;
+  color: #ffffff !important; /* !important para garantir a sobreposição */
+  transform: scale(1.05);
 }
-@media screen and (min-width:768px) {
-    .foto-divulgacao{
-        display: none;
-    }
+
+/* --- Estilo para o Botão Desabilitado --- */
+/* Regra: .home-container .btn-em-breve (Mais específico) */
+.home-container .btn-em-breve {
+  background-color: transparent !important; /* Garante que não haja cor de fundo */
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.3) !important;
+  cursor: not-allowed;
+}
+
+/* Remove qualquer efeito de hover indesejado do botão desabilitado */
+.home-container .btn-em-breve:hover {
+    transform: none;
+}
+
+
+/* --- Responsividade para Telas Maiores (Desktop) --- */
+@media screen and (min-width: 768px) {
+  .home-container .titulohome {
+    font-size: 4.5rem;
+    margin-bottom: 60px;
+  }
+
+  .home-container .botoes-container {
+    flex-direction: row;
+    max-width: 700px;
+  }
+
+  .home-container .btn {
+    font-size: 1.1rem;
+  }
 }
