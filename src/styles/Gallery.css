@@ -1,35 +1,101 @@
-.Galeria-container img{
-  filter: grayscale(100%);
+/* ======================================================= */
+/*          home.css - VERSÃO COM ALTA ESPECIFICIDADE      */
+/* ======================================================= */
+
+/* --- Configuração Geral e Fundo --- */
+body {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-.fotos-mobile:hover {
-  filter: grayscale(0%); /* Remove o efeito grayscale */
-}
-.fotos-pc:hover{
-  filter: grayscale(0%);
-}
-.Galeria-container{
+
+/* Usamos .home-container para aumentar a especificidade de todas as regras filhas */
+.Galeria-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: 40px 20px;
+  min-height: 90vh;
+  box-sizing: border-box;
+  text-align: center;
 }
-.fotos-mobile {
-  width: 80%;       /* Faz a imagem ocupar 80% da largura da div */
-  max-width: 500px; /* Limita a largura da imagem a no máximo 500px */
-  object-fit: contain;
-  transition: filter 0.3s ease;
-  border-radius: 15px; /* Garante que a imagem seja ajustada sem distorção */
+
+/* --- Estilo do Título Principal --- */
+/* Regra: .home-container h1.titulohome (Mais específico que apenas .titulohome) */
+.Galeria-container .tituloGaleria {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 3rem;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
 }
-.fotos-pc{
-   transition: filter 0.3s ease;
-   border-radius: 15px;
+
+/* --- Container dos Botões --- */
+.Galeria-container .botoes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 450px;
 }
-@media screen and (max-width: 1500px ) {
-  .fotos-pc{
-    display: none;
+
+/* --- Estilo Base dos Botões (Design "Vazado") --- */
+/* Regra: .home-container .btn (Mais específico que apenas .btn) */
+.Galeria-container .btn {
+  background-color: transparent !important; /* !important para garantir a sobreposição */
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.8) !important; /* !important para garantir a sobreposição */
+  padding: 18px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #2d0d5c !important;
+}
+
+/* --- Efeito Hover para o Botão Ativo --- */
+/* Regra: .home-container .btn-fotos:hover (Mais específico) */
+.Galeria-container .btn-fotos:hover {
+  background-color: #7335d1 !important; /* !important para garantir a sobreposição */
+  border-color: #7335d1;
+  color: #ffffff !important; /* !important para garantir a sobreposição */
+  transform: scale(1.05);
+}
+
+/* --- Estilo para o Botão Desabilitado --- */
+/* Regra: .home-container .btn-em-breve (Mais específico) */
+.Galeria-container .btn-em-breve {
+  background-color: transparent !important; /* Garante que não haja cor de fundo */
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.3) !important;
+  cursor: not-allowed;
+}
+
+/* Remove qualquer efeito de hover indesejado do botão desabilitado */
+.Galeria-container .btn-em-breve:hover {
+    transform: none;
+}
+
+
+/* --- Responsividade para Telas Maiores (Desktop) --- */
+@media screen and (min-width: 768px) {
+  .Galeria-container .tituloGaleria {
+    font-size: 4.5rem;
+    margin-bottom: 60px;
   }
-}
-@media screen and (min-width: 1500px ) {
-  .fotos-mobile{
-    display: none;
+
+  .Galeria-container .botoes-container {
+    flex-direction: row;
+    max-width: 700px;
+  }
+
+  .Galeria-container .btn {
+    font-size: 1.1rem;
   }
 }

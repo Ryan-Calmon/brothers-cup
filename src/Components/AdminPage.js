@@ -574,8 +574,8 @@ function AdminPage() {
                     required
                   >
                     <option value="">Selecione a categoria</option>
-                    <option value="Open">Open</option>
-                    <option value="Escolinha">Escolinha</option>
+                    <option value="Feminino Escolinha">Feminino Escolinha</option>
+                    <option value="Masculino Escolinha">Masculino Escolinha</option>
                     <option value="Feminino Iniciante">Feminino Iniciante</option>
                     <option value="Misto Escolinha">Misto Escolinha</option>
                     <option value="Misto Iniciante">Misto Iniciante</option>

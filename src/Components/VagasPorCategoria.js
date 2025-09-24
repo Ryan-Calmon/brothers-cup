@@ -6,14 +6,14 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
 
   // Capacidades máximas por categoria
   const capacidadesPorCategoria = {
-    'Escolinha': 24,
+    'Masculino Escolinha': 24,
     'Misto Escolinha': 24,
-    'Feminino Iniciante': 16,
+    'Feminino Escolinha': 16,
     'Masculino Iniciante': 16,
     'Masculino Intermediário': 16,
     'Misto Iniciante': 16,
     'Misto Intermediário': 16,
-    'Open': 16
+    'Feminino Iniciante': 16
   };
 
   // Função para calcular estatísticas por categoria

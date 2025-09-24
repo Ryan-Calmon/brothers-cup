@@ -381,8 +381,8 @@ function FormularioInscricao() {
                 }}
               >
                 <option>Categoria</option>
-                <option>Open</option>
-                <option>Escolinha</option>
+                <option>Feminino Escolinha</option>
+                <option>Masculino Escolinha</option>
                 <option>Feminino Iniciante</option>
                 <option>Misto Escolinha</option>
                 <option>Misto Iniciante</option>
