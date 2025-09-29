@@ -455,7 +455,7 @@ app.post("/inscricoes", async (req, res) => {
       return res.status(400).json({ message: "Campos obrigatórios ausentes" });
     }
 
-    const valorInscricao = valor_inscricao || 260;
+    const valorInscricao = 260 || valor_inscricao;
     const formaPagamento = forma_pagamento || "pix";
 
     console.log(`💰 Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
@@ -575,7 +575,7 @@ app.post("/inscricoes", async (req, res) => {
       "pending"
     );
     
-    console.log(`✅ Nova inscrição criada (PENDENTEE): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
+    console.log(`✅ Nova inscrição criada (Pendente): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
     console.log(`⏳ Vaga NÃO ocupada ainda. Aguardando confirmação do pagamento.`);
 
     res.status(200).json({
@@ -826,7 +826,7 @@ app.delete("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async
       console.log(`🔓 Vaga liberada na categoria ${categoria} após exclusão`);
     }
 
-    console.log(`🗑️ Inscrição testada ${id} excluída pelo admin: ${req.user.username}`);
+    console.log(`🗑️ Inscrição ${id} excluída pelo admin: ${req.user.username}`);
     res.status(200).json({ message: "Inscrição excluída com sucesso" });
   } catch (err) {
     console.error("Erro ao excluir inscrição:", err);
