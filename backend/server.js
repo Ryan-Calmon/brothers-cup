@@ -575,7 +575,7 @@ app.post("/inscricoes", async (req, res) => {
       "pending"
     );
     
-    console.log(`✅ Nova inscrição criada (PENDENTE): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
+    console.log(`✅ Nova inscrição criada (PENDENTEE): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
     console.log(`⏳ Vaga NÃO ocupada ainda. Aguardando confirmação do pagamento.`);
 
     res.status(200).json({
