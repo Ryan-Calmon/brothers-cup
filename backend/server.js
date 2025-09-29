@@ -826,7 +826,7 @@ app.delete("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async
       console.log(`🔓 Vaga liberada na categoria ${categoria} após exclusão`);
     }
 
-    console.log(`🗑️ Inscrição ${id} excluída pelo admin: ${req.user.username}`);
+    console.log(`🗑️ Inscrição testada ${id} excluída pelo admin: ${req.user.username}`);
     res.status(200).json({ message: "Inscrição excluída com sucesso" });
   } catch (err) {
     console.error("Erro ao excluir inscrição:", err);
