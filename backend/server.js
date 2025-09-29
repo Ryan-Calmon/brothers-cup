@@ -455,7 +455,7 @@ app.post("/inscricoes", async (req, res) => {
       return res.status(400).json({ message: "Campos obrigatórios ausentes" });
     }
 
-    const valorInscricao = valor_inscricao || 250;
+    const valorInscricao = valor_inscricao || 260;
     const formaPagamento = forma_pagamento || "pix";
 
     console.log(`💰 Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
