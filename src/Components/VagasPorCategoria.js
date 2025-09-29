@@ -101,6 +101,11 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
                         const maxInscricoes = Math.max(...Object.values(estatisticas).map(cat => cat.total));
                         const porcentagemInscricoes = maxInscricoes > 0 ? (dados.total / maxInscricoes) * 100 : 0;
                         
+                        // Calcular metade pago
+                        const metadePago = inscricoes.filter(i => 
+                          i.categoria === categoria && i.status_pagamento === 'metade_pago'
+                        ).length;
+                        
                         return (
                           <div key={categoria} className="categoria-item">
                             <div className="categoria-header">
@@ -126,6 +131,9 @@ const VagasPorCategoria = ({ inscricoes, onClose }) => {
                                 {dados.total} duplas
                               </span>
                             </div>
+
+                            {/* Exibir metade pago */}
+                            <span>Metade Pago: <strong>{metadePago}</strong></span>
                           </div>
                         );
                       })}

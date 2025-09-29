@@ -331,7 +331,8 @@ function AdminPage() {
           <p className="admin-subtitle">
             Bem-vindo, <strong>{user?.username}</strong> | 
             Total de inscrições: <strong>{inscricoes.length}</strong> | 
-            Pagas: <strong>{inscricoes.filter(i => i.status_pagamento === 'approved').length}</strong>
+            Pagas: <strong>{inscricoes.filter(i => i.status_pagamento === 'approved').length}</strong> | 
+            Metade Pago: <strong>{inscricoes.filter(i => i.status_pagamento === 'metade_pago').length}</strong>
           </p>
         </div>
         <div className="header-right">
