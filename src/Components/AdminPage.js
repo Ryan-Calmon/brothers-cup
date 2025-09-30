@@ -308,9 +308,7 @@ function AdminPage() {
           <p className="admin-subtitle">
             Bem-vindo, <strong>{user?.username}</strong> | 
             Total: <strong>{inscricoes.length}</strong> | 
-            Pagas: <strong>{inscricoes.filter(i => i.status_pagamento === 'approved').length}</strong>
-              
-
+            Pagas: <strong>{inscricoes.filter(i => i.status_pagamento === 'approved').length}</strong> |  
             Segundas Inscrições: <strong>{contagemSegundaInscricaoRep}</strong> (Rep.) + <strong>{contagemSegundaInscricaoParc}</strong> (Parc.) = <strong>{contagemSegundaInscricaoRep + contagemSegundaInscricaoParc}</strong>
           </p>
         </div>
