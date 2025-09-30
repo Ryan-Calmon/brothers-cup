@@ -465,12 +465,27 @@
   gap: 8px;
   background-color: #ff9800; /* Laranja */
 }
+/* No seu arquivo AdminPage.css */
+
+/* 1. Estilo para a LINHA (tr) da inscrição de um campeão */
 .inscricoes-table tr.campeao {
-  background-color: #f0f8ff; /* Um azul bem claro (AliceBlue) */
-  border-left: 4px solid #1e90ff; /* Borda azul para destaque */
-  color: #1e90ff !important;
+  /* Apenas o que se aplica à linha inteira */
+  background-color: #4c008a !important; /* Um azul escuro que combina com o tema */
+  border-left: 4px solid #1e90ff;
+}
+
+/* 2. Estilo para as CÉLULAS (td) DENTRO da linha de um campeão */
+.inscricoes-table tr.campeao td {
+  /* Aplicando a cor diretamente na célula, que contém o texto */
+  color: #fdee13 !important; /* Um azul claro (LightSkyBlue) para contraste */
   font-weight: bold;
 }
+
+/* 3. Garante que o hover na linha do campeão mantenha um estilo consistente */
+.inscricoes-table tr.campeao:hover {
+  background-color: #6f01ca !important;
+}
+
 
 /* Estilo para o campo <select> quando "Segunda Inscrição" está selecionado */
 .uniforme-segunda-inscricao {
