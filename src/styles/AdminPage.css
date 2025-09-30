@@ -465,7 +465,15 @@
   gap: 8px;
   background-color: #ff9800; /* Laranja */
 }
-
+.inscricoes-table tr.campeao {
+  background-color: #f0f8ff; /* Um azul bem claro (AliceBlue) */
+  border-left: 4px solid #1e90ff; /* Borda azul para destaque */
+}
+.status-badge.campeao {
+  background-color: #1e90ff; /* Azul (DodgerBlue) */
+  color: white;
+  border: 1px solid #1c86ee;
+}
 .export-all-button:hover {
   background-color: #f57c00; /* Laranja mais escuro no hover */
   transform: translateY(-2px);
