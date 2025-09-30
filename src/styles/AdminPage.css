@@ -478,7 +478,6 @@
 .inscricoes-table tr.campeao td {
   /* Aplicando a cor diretamente na célula, que contém o texto */
   color: #fdee13 !important; /* Um azul claro (LightSkyBlue) para contraste */
-  font-weight: bold;
 }
 
 /* 3. Garante que o hover na linha do campeão mantenha um estilo consistente */
