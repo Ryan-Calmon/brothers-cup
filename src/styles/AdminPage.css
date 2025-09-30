@@ -468,7 +468,7 @@
 .inscricoes-table tr.campeao {
   background-color: #f0f8ff; /* Um azul bem claro (AliceBlue) */
   border-left: 4px solid #1e90ff; /* Borda azul para destaque */
-  color: #1e90ff;
+  color: #1e90ff !important;
   font-weight: bold;
 }
 
