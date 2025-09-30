@@ -469,6 +469,21 @@
   background-color: #f0f8ff; /* Um azul bem claro (AliceBlue) */
   border-left: 4px solid #1e90ff; /* Borda azul para destaque */
 }
+
+/* Estilo para o campo <select> quando "Segunda Inscrição" está selecionado */
+.uniforme-segunda-inscricao {
+  background-color: #e0e0e0; /* Um cinza claro */
+  color: #333;
+  font-style: italic;
+  border-color: #999;
+}
+
+/* Estilo para a opção "Segunda Inscrição" dentro do menu dropdown */
+select option[value="Segunda Inscrição"] {
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+
 .status-badge.campeao {
   background-color: #1e90ff; /* Azul (DodgerBlue) */
   color: white;

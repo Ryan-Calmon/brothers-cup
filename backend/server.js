@@ -681,10 +681,10 @@ app.get("/inscricoes", authenticateToken, authorizeRoles(["admin"]), async (req,
   }
 });
 
-// Rota para atualizar uma inscrição (protegida)
 // Rota para atualizar uma inscrição (protegida) - VERSÃO ATUALIZADA
 app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
   const { id } = req.params;
+  // 1. Extrai os novos campos do req.body
   const {
     representante,
     parceiro,
@@ -697,7 +697,8 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
     ct_parceiro,
     celular,
     status_pagamento,
-    segunda_inscricao
+    segunda_inscricao_rep,  // <-- CAMPO ATUALIZADO
+    segunda_inscricao_parc  // <-- NOVO CAMPO
   } = req.body;
 
   try {
@@ -705,7 +706,7 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
       return res.status(400).json({ message: "Campos obrigatórios ausentes" });
     }
 
-    // Buscar o status e categoria atuais antes da atualização
+    // Buscar o status e categoria atuais antes da atualização (lógica inalterada)
     const currentResult = await pool.query(
       "SELECT categoria, status_pagamento FROM inscricoes WHERE id = $1",
       [id]
@@ -717,7 +718,7 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
 
     const { status_pagamento: statusAnterior, categoria: categoriaAnterior } = currentResult.rows[0];
 
-    // Atualizar a inscrição no banco de dados
+    // 2. Atualiza a query SQL com os novos campos
     const result = await pool.query(
       `UPDATE inscricoes SET 
         representante = $1,
@@ -731,10 +732,11 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         ct_parceiro = $9,
         celular = $10,
         status_pagamento = $11,
-        segunda_inscricao = $12
-      WHERE id = $13
+        segunda_inscricao_rep = $12, -- <-- CAMPO ATUALIZADO
+        segunda_inscricao_parc = $13  -- <-- NOVO CAMPO
+      WHERE id = $14
       RETURNING *`,
-      [
+      [ // 3. Adiciona as novas variáveis ao array de parâmetros
         representante,
         parceiro,
         instagram_representante,
@@ -746,25 +748,22 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         ct_parceiro,
         celular,
         status_pagamento,
-        segunda_inscricao,
+        segunda_inscricao_rep, // <-- CAMPO ATUALIZADO
+        segunda_inscricao_parc, // <-- NOVO CAMPO
         id
       ]
     );
 
     if (result.rowCount === 0) {
-      // Esta verificação é redundante devido à anterior, mas mantida por segurança
       return res.status(404).json({ message: "Inscrição não encontrada para atualização" });
     }
 
-    // --- LÓGICA DE GERENCIAMENTO DE VAGAS ATUALIZADA ---
+    // --- LÓGICA DE GERENCIAMENTO DE VAGAS (inalterada, pois não depende das novas checkboxes) ---
     const statusQueOcupamVaga = ['approved', 'campeao'];
     const isStatusAnteriorOcupavaVaga = statusQueOcupamVaga.includes(statusAnterior);
     const isNovoStatusOcupaVaga = statusQueOcupamVaga.includes(status_pagamento);
 
-    // Gerencia vagas se o status de ocupação mudou OU se a categoria mudou enquanto ocupava uma vaga
     if (isStatusAnteriorOcupavaVaga !== isNovoStatusOcupaVaga || (isNovoStatusOcupaVaga && categoriaAnterior !== categoria)) {
-      
-      // 1. Libera vaga da categoria anterior se necessário
       if (categoriaAnterior !== categoria && isStatusAnteriorOcupavaVaga) {
         console.log(`🔄 Mudança de categoria: Liberando vaga de ${categoriaAnterior}`);
         await pool.query(
@@ -772,17 +771,14 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
           [categoriaAnterior]
         );
       }
-
-      // 2. Ocupa ou libera vaga na categoria nova/atual
       let incrementoVagas = 0;
       if (!isStatusAnteriorOcupavaVaga && isNovoStatusOcupaVaga) {
-        incrementoVagas = 1; // Ocupar vaga
+        incrementoVagas = 1;
         console.log(`🔒 Ocupando vaga na categoria ${categoria}`);
       } else if (isStatusAnteriorOcupavaVaga && !isNovoStatusOcupaVaga) {
-        incrementoVagas = -1; // Liberar vaga
+        incrementoVagas = -1;
         console.log(`🔓 Liberando vaga na categoria ${categoria}`);
       }
-
       if (incrementoVagas !== 0) {
         await pool.query(
           `UPDATE categorias SET vagas_ocupadas = GREATEST(0, vagas_ocupadas + $1) WHERE nome = $2`,
@@ -799,6 +795,7 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
     res.status(500).json({ message: "Erro ao atualizar inscrição" });
   }
 });
+
 
 // Rota para excluir uma inscrição (protegida) - VERSÃO ATUALIZADA
 app.delete("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
