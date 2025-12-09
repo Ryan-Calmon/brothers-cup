@@ -323,159 +323,75 @@ app.get("/status", async (req, res) => {
 
     res.status(200).json(status);
   } catch (error) {
-    console.error("Erro ao obter status do servidor:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Erro interno do servidor",
-      timestamp: new Date().toISOString()
-    });
+    console.error("Erro ao buscar status:", error);
+    res.status(500).json({ message: "Erro ao buscar status" });
   }
 });
 
-// Função auxiliar para formatar uptime
-const formatUptime = (seconds) => {
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m ${secs}s`;
-  } else if (hours > 0) {
-    return `${hours}h ${minutes}m ${secs}s`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${secs}s`;
-  } else {
-    return `${secs}s`;
-  }
-};
-
-// ROTAS DE AUTENTICAÇÃO
-
-// Rota de login
+// ROTA DE LOGIN
 app.post("/login", rateLimitLogin, async (req, res) => {
   const { username, password } = req.body;
   const ip = req.ip || req.connection.remoteAddress;
 
+  if (username !== ADMIN_USERNAME) {
+    const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: Date.now() };
+    attempts.count++;
+    attempts.lastAttempt = Date.now();
+    loginAttempts.set(ip, attempts);
+    return res.status(401).json({ message: "Nome de usuário ou senha inválidos" });
+  }
+
   try {
-    if (!username || !password) {
-      return res.status(400).json({ message: "Usuário e senha são obrigatórios" });
-    }
+    const match = await bcrypt.compare(password, adminPasswordHash);
 
-    if (username === ADMIN_USERNAME && await bcrypt.compare(password, adminPasswordHash)) {
+    if (match) {
       loginAttempts.delete(ip);
-      
-      const token = jwt.sign(
-        {
-          username: ADMIN_USERNAME,
-          role: "admin",
-          iat: Math.floor(Date.now() / 1000),
-        },
-        JWT_SECRET,
-        { expiresIn: "8h" }
-      );
-
-      console.log(`✅ Login bem-sucedido: ${username} em ${new Date().toISOString()}`);
-
-      return res.status(200).json({
-        message: "Login realizado com sucesso",
-        token,
-        user: { username: ADMIN_USERNAME, role: "admin" },
-      });
+      const token = jwt.sign({ username: ADMIN_USERNAME, role: "admin" }, JWT_SECRET, { expiresIn: "1h" });
+      res.status(200).json({ token, user: { username: ADMIN_USERNAME, role: "admin" } });
     } else {
-      const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
+      const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: Date.now() };
       attempts.count++;
       attempts.lastAttempt = Date.now();
       loginAttempts.set(ip, attempts);
-
-      console.log(`❌ Tentativa de login falhada: ${username} de ${ip} em ${new Date().toISOString()}`);
-
-      return res.status(401).json({ message: "Credenciais inválidas" });
+      res.status(401).json({ message: "Nome de usuário ou senha inválidos" });
     }
   } catch (error) {
     console.error("Erro no login:", error);
-    return res.status(500).json({ message: "Erro interno do servidor" });
+    res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
-// Rota para verificar se o token é válido
-app.get("/verify-token", authenticateToken, (req, res) => {
-  res.status(200).json({
-    valid: true,
-    user: { username: req.user.username, role: req.user.role },
-  });
-});
-
-// ROTAS PÚBLICAS (sem autenticação)
-
-// Rota para verificar se há vagas disponíveis na categoria
-app.get("/vagas/:categoria", async (req, res) => {
-  const categoria = req.params.categoria;
-
-  try {
-    const result = await pool.query(
-      `SELECT vagas_totais, vagas_ocupadas FROM categorias WHERE nome = $1`,
-      [categoria]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: "Categoria não encontrada" });
-    }
-
-    const { vagas_totais, vagas_ocupadas } = result.rows[0];
-    const vagas_restantes = vagas_totais - vagas_ocupadas;
-
-    res.status(200).json({ vagas: vagas_restantes });
-  } catch (err) {
-    console.error("Erro ao verificar vagas:", err);
-    res.status(500).json({ message: "Erro ao verificar vagas" });
-  }
-});
-
-// Rota para criar a inscrição (pública) - INTEGRADA COM MERCADO PAGO
-// MODIFICADA: Não ocupa vaga imediatamente, apenas após confirmação do pagamento
-app.post("/inscricoes", async (req, res) => {
+// ROTA DE INSCRIÇÃO (FRONTEND) - Inalterada, pois o foco é a adminpage
+app.post("/inscricao", async (req, res) => {
   const {
     representante,
     parceiro,
-    instagramRepresentante,
-    instagramParceiro,
-    uniformeRepresentante,
-    uniformeParceiro,
+    instagram_representante,
+    instagram_parceiro,
+    uniforme_representante,
+    uniforme_parceiro,
     categoria,
-    ctRepresentante,
-    ctParceiro,
+    ct_representante,
+    ct_parceiro,
     celular,
-    valor_inscricao,
-    forma_pagamento
+    valorInscricao,
+    formaPagamento,
   } = req.body;
 
+  if (!representante || !parceiro || !categoria || !valorInscricao || !formaPagamento) {
+    return res.status(400).json({ message: "Campos obrigatórios ausentes" });
+  }
+
   try {
-    if (!representante || !parceiro || !categoria || !celular) {
-      return res.status(400).json({ message: "Campos obrigatórios ausentes" });
-    }
-
-    const valorInscricao = 260 || valor_inscricao;
-    const formaPagamento = forma_pagamento || "pix";
-
-    console.log(`💰 Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
-
-    const vagasRes = await pool.query(
-      `SELECT vagas_totais, vagas_ocupadas FROM categorias WHERE nome = $1`,
-      [categoria]
-    );
-
-    if (vagasRes.rowCount === 0) {
-      return res.status(404).json({ message: "Categoria não encontrada" });
-    }
-
-    const { vagas_totais, vagas_ocupadas } = vagasRes.rows[0];
-    if (vagas_ocupadas >= vagas_totais) {
-      return res.status(400).json({ message: "Não há mais vagas disponíveis para esta categoria." });
-    }
-
+    // 1. Inserir na tabela inscricoes
     const result = await pool.query(
       `INSERT INTO inscricoes (
+        representante, parceiro, instagram_representante, instagram_parceiro, 
+        uniforme_representante, uniforme_parceiro, categoria, ct_representante, 
+        ct_parceiro, celular, valor_inscricao, forma_pagamento, status_pagamento
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING id`,
+      [
         representante,
         parceiro,
         instagram_representante,
@@ -486,19 +402,8 @@ app.post("/inscricoes", async (req, res) => {
         ct_representante,
         ct_parceiro,
         celular,
-        status_pagamento
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
-      [
-        representante,
-        parceiro,
-        instagramRepresentante,
-        instagramParceiro,
-        uniformeRepresentante,
-        uniformeParceiro,
-        categoria,
-        ctRepresentante,
-        ctParceiro,
-        celular,
+        valorInscricao,
+        formaPagamento,
         "pending"
       ]
     );
@@ -619,8 +524,6 @@ app.post("/mercadopago/webhook", async (req, res) => {
               novoStatus = "approved";
               break;
             case "pending":
-              novoStatus = "pending";
-              break;
             case "in_process":
               novoStatus = "pending";
               break;
@@ -671,13 +574,98 @@ app.post("/mercadopago/webhook", async (req, res) => {
 // Rota para buscar todas as inscrições (protegida)
 app.get("/inscricoes", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
   try {
+    // Adicionando os novos campos na query de seleção
     const result = await pool.query(
-      `SELECT * FROM inscricoes ORDER BY data_inscricao DESC`
+      `SELECT *, 
+        (valor_inscricao - desconto + outro_valor_pago) as valor_final 
+       FROM inscricoes ORDER BY data_inscricao DESC`
     );
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Erro ao buscar inscrições:", err);
     res.status(500).json({ message: "Erro ao buscar inscrições" });
+  }
+});
+
+// Rota para adicionar uma nova inscrição manualmente pelo admin (NOVA ROTA)
+app.post("/inscricao/admin", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
+  const {
+    representante,
+    parceiro,
+    instagram_representante,
+    instagram_parceiro,
+    uniforme_representante,
+    uniforme_parceiro,
+    categoria,
+    ct_representante,
+    ct_parceiro,
+    celular,
+    valor_inscricao, // Usando o nome do campo do DB
+    forma_pagamento, // Usando o nome do campo do DB
+    status_pagamento,
+    desconto, // NOVO CAMPO
+    observacao, // NOVO CAMPO
+    outro_valor_pago, // NOVO CAMPO
+    id_integrante_1, // NOVO CAMPO
+    id_integrante_2, // NOVO CAMPO
+  } = req.body;
+
+  if (!representante || !parceiro || !categoria || !status_pagamento) {
+    return res.status(400).json({ message: "Campos obrigatórios (Representante, Parceiro, Categoria, Status de Pagamento) ausentes" });
+  }
+
+  try {
+    // 1. Inserir na tabela inscricoes com todos os campos, incluindo os novos
+    const result = await pool.query(
+      `INSERT INTO inscricoes (
+        representante, parceiro, instagram_representante, instagram_parceiro, 
+        uniforme_representante, uniforme_parceiro, categoria, ct_representante, 
+        ct_parceiro, celular, valor_inscricao, forma_pagamento, status_pagamento,
+        desconto, observacao, outro_valor_pago, id_integrante_1, id_integrante_2
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      RETURNING id, categoria, status_pagamento`,
+      [
+        representante,
+        parceiro,
+        instagram_representante,
+        instagram_parceiro,
+        uniforme_representante,
+        uniforme_parceiro,
+        categoria,
+        ct_representante,
+        ct_parceiro,
+        celular,
+        valor_inscricao || 0, // Default para 0 se não for fornecido
+        forma_pagamento || 'admin', // Default para 'admin'
+        status_pagamento,
+        desconto || 0, // Default para 0
+        observacao,
+        outro_valor_pago || 0, // Default para 0
+        id_integrante_1,
+        id_integrante_2,
+      ]
+    );
+
+    const { id: inscricaoId, categoria: novaCategoria, status_pagamento: novoStatus } = result.rows[0];
+
+    // 2. Gerenciar vagas se o status for 'approved' ou 'campeao'
+    const statusQueOcupamVaga = ['approved', 'campeao'];
+    if (statusQueOcupamVaga.includes(novoStatus)) {
+      await pool.query(
+        `UPDATE categorias 
+         SET vagas_ocupadas = GREATEST(0, vagas_ocupadas + 1) 
+         WHERE nome = $1`,
+        [novaCategoria]
+      );
+      console.log(`🔒 Vaga ocupada na categoria ${novaCategoria} pela inscrição ${inscricaoId} (Adicionado pelo Admin)`);
+    }
+
+    console.log(`✅ Nova inscrição adicionada pelo admin: ID ${inscricaoId}`);
+    res.status(201).json({ id: inscricaoId, message: "Inscrição adicionada com sucesso pelo admin." });
+
+  } catch (err) {
+    console.error("Erro ao adicionar inscrição pelo admin:", err);
+    res.status(500).json({ message: "Erro ao adicionar inscrição" });
   }
 });
 
@@ -697,8 +685,13 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
     ct_parceiro,
     celular,
     status_pagamento,
-    segunda_inscricao_rep,  // <-- CAMPO ATUALIZADO
-    segunda_inscricao_parc  // <-- NOVO CAMPO
+    segunda_inscricao_rep,
+    segunda_inscricao_parc,
+    desconto, // NOVO CAMPO
+    observacao, // NOVO CAMPO
+    outro_valor_pago, // NOVO CAMPO
+    id_integrante_1, // NOVO CAMPO
+    id_integrante_2, // NOVO CAMPO
   } = req.body;
 
   try {
@@ -706,7 +699,7 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
       return res.status(400).json({ message: "Campos obrigatórios ausentes" });
     }
 
-    // Buscar o status e categoria atuais antes da atualização (lógica inalterada)
+    // Buscar o status e categoria atuais antes da atualização
     const currentResult = await pool.query(
       "SELECT categoria, status_pagamento FROM inscricoes WHERE id = $1",
       [id]
@@ -732,9 +725,14 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         ct_parceiro = $9,
         celular = $10,
         status_pagamento = $11,
-        segunda_inscricao_rep = $12, -- <-- CAMPO ATUALIZADO
-        segunda_inscricao_parc = $13  -- <-- NOVO CAMPO
-      WHERE id = $14
+        segunda_inscricao_rep = $12,
+        segunda_inscricao_parc = $13,
+        desconto = $14,
+        observacao = $15,
+        outro_valor_pago = $16,
+        id_integrante_1 = $17,
+        id_integrante_2 = $18
+      WHERE id = $19
       RETURNING *`,
       [ // 3. Adiciona as novas variáveis ao array de parâmetros
         representante,
@@ -748,8 +746,13 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         ct_parceiro,
         celular,
         status_pagamento,
-        segunda_inscricao_rep, // <-- CAMPO ATUALIZADO
-        segunda_inscricao_parc, // <-- NOVO CAMPO
+        segunda_inscricao_rep,
+        segunda_inscricao_parc,
+        desconto || 0, // Default para 0
+        observacao,
+        outro_valor_pago || 0, // Default para 0
+        id_integrante_1,
+        id_integrante_2,
         id
       ]
     );
@@ -758,7 +761,7 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
       return res.status(404).json({ message: "Inscrição não encontrada para atualização" });
     }
 
-    // --- LÓGICA DE GERENCIAMENTO DE VAGAS (inalterada, pois não depende das novas checkboxes) ---
+    // --- LÓGICA DE GERENCIAMENTO DE VAGAS ---
     const statusQueOcupamVaga = ['approved', 'campeao'];
     const isStatusAnteriorOcupavaVaga = statusQueOcupamVaga.includes(statusAnterior);
     const isNovoStatusOcupaVaga = statusQueOcupamVaga.includes(status_pagamento);
@@ -853,12 +856,62 @@ app.get("/categorias", authenticateToken, authorizeRoles(["admin"]), async (req,
     res.status(500).json({ message: "Erro ao buscar categorias" });
   }
 });
+
+// Rota para buscar um integrante pelo ID (NOVA ROTA)
+app.get("/integrante/:id", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
+  const { id } = req.params;
+  try {
+    // A busca é feita na tabela inscricoes, procurando o ID em id_integrante_1 ou id_integrante_2
+    // Isso é uma simplificação, pois o ID do integrante é o ID da inscrição em que ele foi o representante (id_integrante_1)
+    // Para fins de busca, vamos buscar a inscrição que tem esse ID como representante ou parceiro
+    const result = await pool.query(
+      `SELECT id, representante, parceiro, categoria, celular, instagram_representante, instagram_parceiro
+       FROM inscricoes 
+       WHERE id = $1`, // Simplificando: o ID do integrante é o ID da inscrição original
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Integrante não encontrado. O ID deve ser o ID de uma inscrição existente." });
+    }
+
+    const inscricao = result.rows[0];
+    
+    // Retorna os dados do integrante (simplificando para o representante da inscrição)
+    res.status(200).json({
+      id: inscricao.id,
+      nome_representante: inscricao.representante,
+      nome_parceiro: inscricao.parceiro,
+      categoria: inscricao.categoria,
+      celular: inscricao.celular,
+      instagram_representante: inscricao.instagram_representante,
+      instagram_parceiro: inscricao.instagram_parceiro,
+      // Você pode adicionar mais lógica aqui se tiver uma tabela de jogadores separada
+    });
+
+  } catch (err) {
+    console.error(`Erro ao buscar integrante ${id}:`, err);
+    res.status(500).json({ message: "Erro ao buscar integrante" });
+  }
+});
+
+
 app.get("/health", (req, res) => {
     res.status(200).send("OK");
 });
+
+function formatUptime(seconds) {
+  const days = Math.floor(seconds / (3600 * 24));
+  seconds -= days * 3600 * 24;
+  const hours = Math.floor(seconds / 3600);
+  seconds -= hours * 3600;
+  const minutes = Math.floor(seconds / 60);
+  seconds -= minutes * 60;
+  return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📅 Servidor iniciado em: ${serverStartTime.toISOString()}`);
 });
-
