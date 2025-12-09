@@ -361,6 +361,86 @@ app.post("/login", rateLimitLogin, async (req, res) => {
   }
 });
 
+// Rota para adicionar uma nova inscrição manualmente pelo admin (NOVA ROTA) - DEVE VIR ANTES DE /inscricao/:id
+app.post("/inscricao/admin", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
+  const {
+    representante,
+    parceiro,
+    instagram_representante,
+    instagram_parceiro,
+    uniforme_representante,
+    uniforme_parceiro,
+    categoria,
+    ct_representante,
+    ct_parceiro,
+    celular,
+    valor_inscricao,
+    forma_pagamento,
+    status_pagamento,
+    desconto,
+    observacao,
+    outro_valor_pago,
+    id_integrante_1,
+    id_integrante_2,
+  } = req.body;
+
+  if (!representante || !parceiro || !categoria || !status_pagamento) {
+    return res.status(400).json({ message: "Campos obrigatórios (Representante, Parceiro, Categoria, Status de Pagamento) ausentes" });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO inscricoes (
+        representante, parceiro, instagram_representante, instagram_parceiro, 
+        uniforme_representante, uniforme_parceiro, categoria, ct_representante, 
+        ct_parceiro, celular, valor_inscricao, forma_pagamento, status_pagamento,
+        desconto, observacao, outro_valor_pago, id_integrante1, id_integrante2
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      RETURNING id, categoria, status_pagamento`,
+      [
+        representante,
+        parceiro,
+        instagram_representante,
+        instagram_parceiro,
+        uniforme_representante,
+        uniforme_parceiro,
+        categoria,
+        ct_representante,
+        ct_parceiro,
+        celular,
+        valor_inscricao || 260, // Valor padrão de 260
+        forma_pagamento || 'admin',
+        status_pagamento,
+        desconto || 0,
+        observacao,
+        outro_valor_pago || 0,
+        id_integrante_1,
+        id_integrante_2,
+      ]
+    );
+
+    const { id: inscricaoId, categoria: novaCategoria, status_pagamento: novoStatus } = result.rows[0];
+
+    const statusQueOcupamVaga = ['approved', 'campeao'];
+    if (statusQueOcupamVaga.includes(novoStatus)) {
+      await pool.query(
+        `UPDATE categorias 
+         SET vagas_ocupadas = GREATEST(0, vagas_ocupadas + 1) 
+         WHERE nome = $1`,
+        [novaCategoria]
+      );
+      console.log(`🔒 Vaga ocupada na categoria ${novaCategoria} pela inscrição ${inscricaoId} (Adicionado pelo Admin)`);
+    }
+
+    console.log(`✅ Nova inscrição adicionada pelo admin: ID ${inscricaoId}`);
+    res.status(201).json({ id: inscricaoId, message: "Inscrição adicionada com sucesso pelo admin." });
+
+  } catch (err) {
+    console.error("Erro ao adicionar inscrição pelo admin:", err);
+    res.status(500).json({ message: "Erro ao adicionar inscrição" });
+  }
+});
+
 // ROTA DE INSCRIÇÃO (FRONTEND) - Inalterada, pois o foco é a adminpage
 app.post("/inscricao", async (req, res) => {
   const {
@@ -587,87 +667,7 @@ app.get("/inscricoes", authenticateToken, authorizeRoles(["admin"]), async (req,
   }
 });
 
-// Rota para adicionar uma nova inscrição manualmente pelo admin (NOVA ROTA)
-app.post("/inscricao/admin", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
-  const {
-    representante,
-    parceiro,
-    instagram_representante,
-    instagram_parceiro,
-    uniforme_representante,
-    uniforme_parceiro,
-    categoria,
-    ct_representante,
-    ct_parceiro,
-    celular,
-    valor_inscricao, // Usando o nome do campo do DB
-    forma_pagamento, // Usando o nome do campo do DB
-    status_pagamento,
-    desconto, // NOVO CAMPO
-    observacao, // NOVO CAMPO
-    outro_valor_pago, // NOVO CAMPO
-    id_integrante_1, // NOVO CAMPO
-    id_integrante_2, // NOVO CAMPO
-  } = req.body;
 
-  if (!representante || !parceiro || !categoria || !status_pagamento) {
-    return res.status(400).json({ message: "Campos obrigatórios (Representante, Parceiro, Categoria, Status de Pagamento) ausentes" });
-  }
-
-  try {
-    // 1. Inserir na tabela inscricoes com todos os campos, incluindo os novos
-    const result = await pool.query(
-      `INSERT INTO inscricoes (
-        representante, parceiro, instagram_representante, instagram_parceiro, 
-        uniforme_representante, uniforme_parceiro, categoria, ct_representante, 
-        ct_parceiro, celular, valor_inscricao, forma_pagamento, status_pagamento,
-        desconto, observacao, outro_valor_pago, id_integrante_1, id_integrante_2
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-      RETURNING id, categoria, status_pagamento`,
-      [
-        representante,
-        parceiro,
-        instagram_representante,
-        instagram_parceiro,
-        uniforme_representante,
-        uniforme_parceiro,
-        categoria,
-        ct_representante,
-        ct_parceiro,
-        celular,
-        valor_inscricao || 0, // Default para 0 se não for fornecido
-        forma_pagamento || 'admin', // Default para 'admin'
-        status_pagamento,
-        desconto || 0, // Default para 0
-        observacao,
-        outro_valor_pago || 0, // Default para 0
-        id_integrante_1,
-        id_integrante_2,
-      ]
-    );
-
-    const { id: inscricaoId, categoria: novaCategoria, status_pagamento: novoStatus } = result.rows[0];
-
-    // 2. Gerenciar vagas se o status for 'approved' ou 'campeao'
-    const statusQueOcupamVaga = ['approved', 'campeao'];
-    if (statusQueOcupamVaga.includes(novoStatus)) {
-      await pool.query(
-        `UPDATE categorias 
-         SET vagas_ocupadas = GREATEST(0, vagas_ocupadas + 1) 
-         WHERE nome = $1`,
-        [novaCategoria]
-      );
-      console.log(`🔒 Vaga ocupada na categoria ${novaCategoria} pela inscrição ${inscricaoId} (Adicionado pelo Admin)`);
-    }
-
-    console.log(`✅ Nova inscrição adicionada pelo admin: ID ${inscricaoId}`);
-    res.status(201).json({ id: inscricaoId, message: "Inscrição adicionada com sucesso pelo admin." });
-
-  } catch (err) {
-    console.error("Erro ao adicionar inscrição pelo admin:", err);
-    res.status(500).json({ message: "Erro ao adicionar inscrição" });
-  }
-});
 
 // Rota para atualizar uma inscrição (protegida) - VERSÃO ATUALIZADA
 app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
@@ -687,11 +687,12 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
     status_pagamento,
     segunda_inscricao_rep,
     segunda_inscricao_parc,
-    desconto, // NOVO CAMPO
-    observacao, // NOVO CAMPO
-    outro_valor_pago, // NOVO CAMPO
-    id_integrante_1, // NOVO CAMPO
-    id_integrante_2, // NOVO CAMPO
+    desconto,
+    observacao,
+    outro_valor_pago,
+    id_integrante_1,
+    id_integrante_2,
+    valor_inscricao,
   } = req.body;
 
   try {
@@ -730,9 +731,10 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         desconto = $14,
         observacao = $15,
         outro_valor_pago = $16,
-        id_integrante_1 = $17,
-        id_integrante_2 = $18
-      WHERE id = $19
+        id_integrante1 = $17,
+        id_integrante2 = $18,
+        valor_inscricao = $19
+      WHERE id = $20
       RETURNING *`,
       [ // 3. Adiciona as novas variáveis ao array de parâmetros
         representante,
@@ -748,11 +750,12 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         status_pagamento,
         segunda_inscricao_rep,
         segunda_inscricao_parc,
-        desconto || 0, // Default para 0
+        parseFloat(desconto) || 0, // Garantir que seja número
         observacao,
-        outro_valor_pago || 0, // Default para 0
+        parseFloat(outro_valor_pago) || 0, // Garantir que seja número
         id_integrante_1,
         id_integrante_2,
+        parseFloat(req.body.valor_inscricao) || 260, // Valor padrão 260
         id
       ]
     );

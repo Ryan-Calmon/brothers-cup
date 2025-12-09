@@ -201,7 +201,7 @@ function AdminPage() {
     // Garantir que os campos numéricos sejam números
     dadosParaSalvar.desconto = parseFloat(dadosParaSalvar.desconto || 0);
     dadosParaSalvar.outro_valor_pago = parseFloat(dadosParaSalvar.outro_valor_pago || 0);
-    dadosParaSalvar.valor_inscricao = parseFloat(dadosParaSalvar.valor_inscricao || 0);
+    dadosParaSalvar.valor_inscricao = parseFloat(dadosParaSalvar.valor_inscricao || 260); // Valor padrão 260
 
     try {
       const response = await fetch(`${BACKEND_URL}/inscricao/${editing.id}`, {
@@ -341,7 +341,7 @@ function AdminPage() {
     // Garantir que os campos numéricos sejam números
     dadosParaSalvar.desconto = parseFloat(dadosParaSalvar.desconto || 0);
     dadosParaSalvar.outro_valor_pago = parseFloat(dadosParaSalvar.outro_valor_pago || 0);
-    dadosParaSalvar.valor_inscricao = parseFloat(dadosParaSalvar.valor_inscricao || 0);
+    dadosParaSalvar.valor_inscricao = parseFloat(dadosParaSalvar.valor_inscricao || 260); // Valor padrão 260
 
     try {
       const response = await fetch(`${BACKEND_URL}/inscricao/admin`, {
