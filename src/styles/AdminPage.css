@@ -209,12 +209,6 @@
   flex-direction: column;
 }
 
-.header-right {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
 .admin-title {
   color: #fdd835; /* Amarelo para o título principal */
   font-size: 2.5em;
@@ -236,26 +230,6 @@
 
 .admin-subtitle strong {
   color: #ffffff;
-}
-
-/* Botão de Adicionar Inscrição (NOVO) */
-.add-button {
-  background-color: #28a745; /* Verde */
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 25px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.add-button:hover {
-  background-color: #218838;
-  transform: translateY(-2px);
 }
 
 /* Botão de Sair */
@@ -477,8 +451,6 @@
 .date-cell { width: 10%; }
 .status-cell { width: 10%; }
 .actions-cell { width: 10%; text-align: center; }
-.value-cell { width: 12%; text-align: right; } /* NOVO: Para o valor final */
-.tam-cell { width: 10%; }
 
 .export-all-button {
   padding: 12px 20px;
@@ -493,7 +465,6 @@
   gap: 8px;
   background-color: #ff9800; /* Laranja */
 }
-
 /* No seu arquivo AdminPage.css */
 
 /* 1. Estilo para a LINHA (tr) da inscrição de um campeão */
@@ -629,7 +600,6 @@ select option[value="Segunda Inscrição"] {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  overflow-y: auto; /* Permite scroll se o modal for muito grande */
 }
 
 .edit-modal {
@@ -637,11 +607,10 @@ select option[value="Segunda Inscrição"] {
   border-radius: 10px;
   padding: 30px;
   width: 90%;
-  max-width: 800px; /* Aumentado para acomodar novos campos */
+  max-width: 700px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   position: relative;
   color: #e0e0e0; /* Texto claro no modal */
-  margin: 20px auto; /* Centraliza verticalmente com espaço */
 }
 
 .modal-header {
@@ -675,8 +644,6 @@ select option[value="Segunda Inscrição"] {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  max-height: 70vh; /* Limita altura para permitir scroll */
-  overflow-y: auto;
 }
 
 .form-row {
@@ -687,14 +654,9 @@ select option[value="Segunda Inscrição"] {
 
 .form-group {
   flex: 1;
-  min-width: 200px; /* Garante largura mínima para campos */
+  min-width: 250px; /* Garante largura mínima para campos */
   display: flex;
   flex-direction: column;
-}
-
-.form-group.full-width {
-  flex: 1 1 100%;
-  min-width: 100%;
 }
 
 .form-group label {
@@ -703,7 +665,7 @@ select option[value="Segunda Inscrição"] {
   font-size: 0.9em;
 }
 
-.form-group input, .form-group select, .form-group textarea {
+.form-group input, .form-group select {
   padding: 10px;
   border: 1px solid #444;
   border-radius: 5px;
@@ -714,15 +676,10 @@ select option[value="Segunda Inscrição"] {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+.form-group input:focus, .form-group select:focus {
   border-color: #6a0f81;
   box-shadow: 0 0 0 3px rgba(106, 15, 129, 0.3);
   outline: none;
-}
-
-.form-group textarea {
-  resize: vertical;
-  font-family: inherit;
 }
 
 .form-group select {
@@ -731,10 +688,6 @@ select option[value="Segunda Inscrição"] {
   background-repeat: no-repeat;
   background-position: right 10px top 50%;
   background-size: 12px auto;
-}
-
-.input-personalizado {
-  margin-top: 10px !important;
 }
 
 .checkbox-group {
@@ -755,19 +708,7 @@ select option[value="Segunda Inscrição"] {
   color: #e0e0e0;
 }
 
-.success-message {
-  color: #28a745;
-  font-size: 0.85em;
-  margin-top: 5px;
-}
-
-.error-message {
-  color: #f44336;
-  font-size: 0.85em;
-  margin-top: 5px;
-}
-
-.modal-footer {
+.modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
@@ -855,12 +796,7 @@ select option[value="Segunda Inscrição"] {
     gap: 20px;
   }
 
-  .header-right {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .add-button, .logout-button {
+  .logout-button {
     width: 100%;
     justify-content: center;
   }
@@ -878,7 +814,7 @@ select option[value="Segunda Inscrição"] {
     align-items: stretch;
   }
 
-  .refresh-button, .filter-button, .export-button, .export-all-button {
+  .refresh-button, .filter-button, .export-button {
     width: 100%;
     justify-content: center;
   }
@@ -898,7 +834,7 @@ select option[value="Segunda Inscrição"] {
     width: 100%;
   }
 
-  .modal-footer {
+  .modal-actions {
     flex-direction: column;
     align-items: stretch;
   }
@@ -907,18 +843,13 @@ select option[value="Segunda Inscrição"] {
     width: 100%;
     justify-content: center;
   }
-
-  .edit-modal {
-    max-width: 95%;
-    padding: 20px;
-  }
 }
 .refresh-status-button:disabled {
   position: relative;
 }
 
 .refresh-status-button:disabled::after {
-  content: '';
+  content: \'\';
   position: absolute;
   width: 16px;
   height: 16px;
@@ -928,3 +859,4 @@ select option[value="Segunda Inscrição"] {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+
