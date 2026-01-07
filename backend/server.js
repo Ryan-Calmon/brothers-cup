@@ -46,7 +46,7 @@ const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 
 let adminPasswordHash = ADMIN_PASSWORD_HASH;
 if (!adminPasswordHash) {
-  console.warn("⚠️  AVISO: Usando senha padrão. MUDE EM PRODUÇÃO!");
+  console.warn("AVISO: Usando senha padrão. MUDE EM PRODUÇÃO!");
   adminPasswordHash = "$2b$10$rOOjq7O8J8J8J8J8J8J8JeJ8J8J8J8J8J8J8J8J8J8J8J8J8J8J8J8";
 }
 
@@ -209,8 +209,8 @@ const gerenciarVagasPorStatusPagamento = async (externalReference, novoStatus, s
 
     const { categoria, status_pagamento: statusAtual } = inscricaoResult.rows[0];
     
-    console.log(`🎯 Gerenciando vagas: Inscrição ${inscricaoId}, Categoria ${categoria}`);
-    console.log(`📊 Status: ${statusAtual} → ${novoStatus}`);
+    console.log(` Gerenciando vagas: Inscrição ${inscricaoId}, Categoria ${categoria}`);
+    console.log(` Status: ${statusAtual} → ${novoStatus}`);
 
     // Lógica para ocupar/liberar vagas
     let incrementoVagas = 0;
@@ -218,16 +218,16 @@ const gerenciarVagasPorStatusPagamento = async (externalReference, novoStatus, s
     // Se o status anterior era 'approved' e o novo não é, liberar vaga
     if (statusAtual === "approved" && novoStatus !== "approved") {
       incrementoVagas = -1; // Liberar vaga
-      console.log(`🔓 Liberando vaga na categoria ${categoria}`);
+      console.log(` Liberando vaga na categoria ${categoria}`);
     }
     // Se o status anterior não era 'approved' e o novo é, ocupar vaga
     else if (statusAtual !== "approved" && novoStatus === "approved") {
       incrementoVagas = 1; // Ocupar vaga
-      console.log(`🔒 Ocupando vaga na categoria ${categoria}`);
+      console.log(` Ocupando vaga na categoria ${categoria}`);
     }
     // Se não houve mudança relevante, não fazer nada
     else {
-      console.log(`⚪ Sem alteração de vagas necessária`);
+      console.log(` Sem alteração de vagas necessária`);
       return;
     }
 
@@ -243,7 +243,7 @@ const gerenciarVagasPorStatusPagamento = async (externalReference, novoStatus, s
 
       if (updateResult.rowCount > 0) {
         const { vagas_totais, vagas_ocupadas } = updateResult.rows[0];
-        console.log(`✅ Vagas atualizadas na categoria ${categoria}: ${vagas_ocupadas}/${vagas_totais}`);
+        console.log(`Vagas atualizadas na categoria ${categoria}: ${vagas_ocupadas}/${vagas_totais}`);
       } else {
         console.warn(`Categoria não encontrada: ${categoria}`);
       }
@@ -388,7 +388,7 @@ app.post("/login", rateLimitLogin, async (req, res) => {
       attempts.lastAttempt = Date.now();
       loginAttempts.set(ip, attempts);
 
-      console.log(`❌ Tentativa de login falhada: ${username} de ${ip} em ${new Date().toISOString()}`);
+      console.log(` Tentativa de login falhada: ${username} de ${ip} em ${new Date().toISOString()}`);
 
       return res.status(401).json({ message: "Credenciais inválidas" });
     }
@@ -458,7 +458,7 @@ app.post("/inscricoes", async (req, res) => {
     const valorInscricao = 260 || valor_inscricao;
     const formaPagamento = forma_pagamento || "pix";
 
-    console.log(`💰 Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
+    console.log(` Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
 
     const vagasRes = await pool.query(
       `SELECT vagas_totais, vagas_ocupadas FROM categorias WHERE nome = $1`,
@@ -551,7 +551,7 @@ app.post("/inscricoes", async (req, res) => {
       statement_descriptor: "BROTHERS CUP",
     };
 
-    console.log("🔧 Configuração de pagamento:", JSON.stringify(paymentMethods, null, 2));
+    console.log(" Configuração de pagamento:", JSON.stringify(paymentMethods, null, 2));
 
     const mpResponse = await preference.create({ body: preferenceBody });
 
@@ -575,8 +575,8 @@ app.post("/inscricoes", async (req, res) => {
       "pending"
     );
     
-    console.log(`✅ Nova inscrição criada (Pendente): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
-    console.log(`⏳ Vaga NÃO ocupada ainda. Aguardando confirmação do pagamento.`);
+    console.log(` Nova inscrição criada (Pendente): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria} - ${formaPagamento.toUpperCase()} R$${valorInscricao}`);
+    console.log(`Vaga NÃO ocupada ainda. Aguardando confirmação do pagamento.`);
 
     res.status(200).json({
       id: inscricaoId,
@@ -594,19 +594,19 @@ app.post("/inscricoes", async (req, res) => {
 
 // Webhook do Mercado Pago
 app.post("/mercadopago/webhook", async (req, res) => {
-  console.log("🔔 Webhook recebido:", JSON.stringify(req.body, null, 2));
+  console.log(" Webhook recebido:", JSON.stringify(req.body, null, 2));
 
   try {
     const { type, data } = req.body;
 
     if (type === "payment") {
       const paymentId = data.id;
-      console.log(`💳 Processando pagamento: ${paymentId}`);
+      console.log(` Processando pagamento: ${paymentId}`);
 
       const payment = await paymentApi.get({ id: paymentId });
       const paymentData = payment;
 
-      console.log(`📊 Dados do pagamento:`, JSON.stringify(paymentData, null, 2));
+      console.log(` Dados do pagamento:`, JSON.stringify(paymentData, null, 2));
 
       if (paymentData.external_reference) {
         const inscricao = await getInscricaoByExternalReference(paymentData.external_reference);
@@ -632,7 +632,7 @@ app.post("/mercadopago/webhook", async (req, res) => {
               novoStatus = "pending";
           }
 
-          console.log(`🔄 Atualizando status: ${paymentData.status} → ${novoStatus}`);
+          console.log(` Atualizando status: ${paymentData.status} → ${novoStatus}`);
 
           await gerenciarVagasPorStatusPagamento(
             paymentData.external_reference,
@@ -654,14 +654,14 @@ app.post("/mercadopago/webhook", async (req, res) => {
 
           console.log(`✅ Pagamento processado: ID ${paymentId} - Status: ${novoStatus}`);
         } else {
-          console.warn(`⚠️ Inscrição não encontrada para external_reference: ${paymentData.external_reference}`);
+          console.warn(` Inscrição não encontrada para external_reference: ${paymentData.external_reference}`);
         }
       }
     }
 
     res.status(200).json({ received: true });
   } catch (error) {
-    console.error("❌ Erro no webhook:", error);
+    console.error("Erro no webhook:", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
@@ -765,7 +765,7 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
 
     if (isStatusAnteriorOcupavaVaga !== isNovoStatusOcupaVaga || (isNovoStatusOcupaVaga && categoriaAnterior !== categoria)) {
       if (categoriaAnterior !== categoria && isStatusAnteriorOcupavaVaga) {
-        console.log(`🔄 Mudança de categoria: Liberando vaga de ${categoriaAnterior}`);
+        console.log(` Mudança de categoria: Liberando vaga de ${categoriaAnterior}`);
         await pool.query(
           `UPDATE categorias SET vagas_ocupadas = GREATEST(0, vagas_ocupadas - 1) WHERE nome = $1`,
           [categoriaAnterior]
@@ -774,10 +774,10 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
       let incrementoVagas = 0;
       if (!isStatusAnteriorOcupavaVaga && isNovoStatusOcupaVaga) {
         incrementoVagas = 1;
-        console.log(`🔒 Ocupando vaga na categoria ${categoria}`);
+        console.log(` Ocupando vaga na categoria ${categoria}`);
       } else if (isStatusAnteriorOcupavaVaga && !isNovoStatusOcupaVaga) {
         incrementoVagas = -1;
-        console.log(`🔓 Liberando vaga na categoria ${categoria}`);
+        console.log(`Liberando vaga na categoria ${categoria}`);
       }
       if (incrementoVagas !== 0) {
         await pool.query(
@@ -787,7 +787,7 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
       }
     }
 
-    console.log(`✏️ Inscrição ${id} atualizada pelo admin: ${req.user.username}`);
+    console.log(`Inscrição ${id} atualizada pelo admin: ${req.user.username}`);
     res.status(200).json(result.rows[0]);
 
   } catch (err) {
@@ -827,10 +827,10 @@ app.delete("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async
          WHERE nome = $1`,
         [categoria]
       );
-      console.log(`🔓 Vaga liberada na categoria ${categoria} após exclusão da inscrição ${id}`);
+      console.log(`Vaga liberada na categoria ${categoria} após exclusão da inscrição ${id}`);
     }
 
-    console.log(`🗑️ Inscrição ${id} excluída pelo admin: ${req.user.username}`);
+    console.log(`Inscrição ${id} excluída pelo admin: ${req.user.username}`);
     res.status(200).json({ message: "Inscrição excluída com sucesso" });
 
   } catch (err) {
@@ -858,7 +858,7 @@ app.get("/health", (req, res) => {
 });
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📅 Servidor iniciado em: ${serverStartTime.toISOString()}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor iniciado em: ${serverStartTime.toISOString()}`);
 });
 
