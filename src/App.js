@@ -1,118 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Header from './Components/Header';
-import Home from './Components/Home';
-import PrimeiraEtapa from './Components/PrimeiraEtapa';
-import Inscricao from './Components/FormularioInscricao';
-import Lightning from './Components/Lightning';
-import AdminPage from './Components/AdminPage';
-import LoginPage from './Components/LoginPage';
-import Contato from './Components/Contato';
-import Footer from './Components/Footer';
-import Local from './Components/Local';
-import Sucesso from './Components/Sucesso';
-import Tabelas from './Components/Tabela';
-import Patrocinadores from './Components/Patrocinadores';
-import './App.css';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Header from "./Components/layout/Header";
+import Footer from "./Components/layout/Footer";
+import HeroBanner from "./Components/home/HeroBanner";
+import FormularioInscricao from "./Components/inscricao/FormularioInscricao";
+import LocalMap from "./Components/home/LocalMap";
+import Gallery from "./Components/home/Gallery";
+import Contato from "./Components/home/Contato";
+import Patrocinadores from "./Components/home/Patrocinadores";
+import TabelaTorneio from "./Components/torneio/TabelaTorneio";
+import LoginPage from "./pages/LoginPage";
+import Sucesso from "./pages/Sucesso";
+import AdminPage from "./pages/admin/AdminPage";
+import Lightning from "./Components/Lightning";
+import { PageLoader } from "./Components/ui";
+import "./App.css";
 
-// 1. Importe o Clarity
-import Clarity from '@microsoft/clarity';
+import Clarity from "@microsoft/clarity";
+
+if (process.env.NODE_ENV === "production") {
+  Clarity.init("s9fs2d34fp");
+}
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <PageLoader message="Verificando sessão..." />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function HomePage() {
+  return (
+    <>
+      <section id="inicio">
+        <HeroBanner />
+      </section>
+      <section id="inscricao">
+        <FormularioInscricao />
+      </section>
+      <section id="local">
+        <LocalMap />
+      </section>
+      <section id="primeiraetapa">
+        <Gallery />
+      </section>
+      <section id="contato">
+        <Contato />
+      </section>
+    </>
+  );
+}
 
 function App() {
-  const projectId = 's9fs2d34fp';
-
-  // 3. Inicialize o Clarity (idealmente, apenas em ambiente de produção)
-  if (process.env.NODE_ENV === 'production') {
-    Clarity.init(projectId);
-  }
-
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Verifica se há um token no localStorage na inicialização
-    return !!localStorage.getItem('adminToken');
-  });
-
-  // Função para ser passada para LoginPage para atualizar o estado de autenticação
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
-
-  // Função para lidar com o logout
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    setIsAuthenticated(false);
-    // O redirecionamento para /login acontecerá automaticamente devido à mudança de estado
-  };
-
   return (
-    <Router>
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          position: 'fixed',
-          top: '0',
-          zIndex: -1,
-          pointerEvents: 'none',
-        }}
-      >
-        <Lightning
-          hue={265}
-          xOffset={0}
-          speed={0.5}
-          intensity={0.4}
-          size={1.7}
-        />
-      </div>
+    <AuthProvider>
+      <Router>
+        {/* Background Effect */}
+        <div className="fixed inset-0 z-[-1] pointer-events-none">
+          <Lightning hue={265} xOffset={0} speed={0.5} intensity={0.4} size={1.7} />
+        </div>
 
-      <Header />
+        <div className="flex flex-col min-h-screen">
+          <Header />
 
-      <main>
-        <Routes>
-          <Route path="/" element={
-            <div>
-              <section id="inicio">
-                <Home />
-              </section>
-              <section id="patrocinadores">
-              </section>
-              <section id="inscricao">
-                <Inscricao />
-              </section>
-               <section id="local">
-                <Local />
-              </section>
-                <section id="primeiraetapa">
-                <PrimeiraEtapa />
-              </section>
-              <section id="contato">
-                <Contato />
-              </section>  
-            </div>
-          } />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/sucesso" element={<Sucesso />} />
+              <Route path="/tabelas" element={<TabelaTorneio />} />
+              <Route path="/patrocinadores" element={<Patrocinadores />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </main>
 
-          {/* Rota para a página de login, passando a função handleLogin */}
-          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-          <Route path="/sucesso" element={<Sucesso onLogin={handleLogin} />} />
-
-          {/* Rota protegida para a área de administração */}
-          <Route
-            path="/admin"
-            element={
-              isAuthenticated ? (
-                <AdminPage onLogout={handleLogout} /> // Passa handleLogout para AdminPage
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          <Route path="/patrocinadores" element={<Patrocinadores />} />
-          <Route path="/tabelas" element={<Tabelas />} />
-        </Routes>
-      </main>
-
-      <Footer />
-    </Router>
+          <Footer />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

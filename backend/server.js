@@ -12,9 +12,14 @@ const app = express();
 const frontendURL = process.env.FRONTEND_URL;
 const serverStartTime = new Date();
 
+const allowedOrigins = [frontendURL];
+if (process.env.NODE_ENV !== "production") {
+  allowedOrigins.push("http://localhost:3000", "http://127.0.0.1:3000");
+}
+
 app.use(helmet());
 app.use(cors({
-  origin: [frontendURL,],
+  origin: allowedOrigins.filter(Boolean),
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -46,7 +51,11 @@ const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 
 let adminPasswordHash = ADMIN_PASSWORD_HASH;
 if (!adminPasswordHash) {
-  console.warn("AVISO: Usando senha padrão. MUDE EM PRODUÇÃO!");
+  if (process.env.NODE_ENV === "production") {
+    console.error("ERRO CRÍTICO: ADMIN_PASSWORD_HASH não configurado em produção!");
+    process.exit(1);
+  }
+  console.warn("AVISO: Usando senha padrão de dev. MUDE EM PRODUÇÃO!");
   adminPasswordHash = "$2b$10$rOOjq7O8J8J8J8J8J8J8JeJ8J8J8J8J8J8J8J8J8J8J8J8J8J8J8J8";
 }
 
@@ -455,7 +464,7 @@ app.post("/inscricoes", async (req, res) => {
       return res.status(400).json({ message: "Campos obrigatórios ausentes" });
     }
 
-    const valorInscricao = 260 || valor_inscricao;
+    const valorInscricao = valor_inscricao || 280;
     const formaPagamento = forma_pagamento || "pix";
 
     console.log(` Criando inscrição: Valor=${valorInscricao}, Forma=${formaPagamento}`);
@@ -486,8 +495,9 @@ app.post("/inscricoes", async (req, res) => {
         ct_representante,
         ct_parceiro,
         celular,
-        status_pagamento
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
+        status_pagamento,
+        observacao
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
       [
         representante,
         parceiro,
@@ -499,7 +509,8 @@ app.post("/inscricoes", async (req, res) => {
         ctRepresentante,
         ctParceiro,
         celular,
-        "pending"
+        "pending",
+        ""
       ]
     );
 
@@ -540,7 +551,7 @@ app.post("/inscricoes", async (req, res) => {
         },
       ],
       back_urls: {
-        success: "https://www.brotherscup.com.br/successo",
+        success: "https://www.brotherscup.com.br/sucesso",
         failure: "https://www.brotherscup.com.br/falhou",
         pending: "https://www.brotherscup.com.br/pendente",
       },
@@ -552,6 +563,30 @@ app.post("/inscricoes", async (req, res) => {
     };
 
     console.log(" Configuração de pagamento:", JSON.stringify(paymentMethods, null, 2));
+
+    // Em dev sem token válido do Mercado Pago, pular integração de pagamento
+    const mpToken = process.env.MP_ACCESS_TOKEN;
+    const isDevWithoutMP = process.env.NODE_ENV !== "production" && (!mpToken || mpToken.startsWith("TEST-your-") || mpToken === "");
+
+    if (isDevWithoutMP) {
+      // DEV MODE: marcar como aprovado direto e ocupar vaga
+      await pool.query(
+        `UPDATE inscricoes SET status_pagamento = 'approved' WHERE id = $1`,
+        [inscricaoId]
+      );
+      await pool.query(
+        `UPDATE categorias SET vagas_ocupadas = vagas_ocupadas + 1 WHERE nome = $1`,
+        [categoria]
+      );
+
+      console.log(`✅ [DEV] Inscrição criada e aprovada (sem MP): ID ${inscricaoId} - ${representante}/${parceiro} - ${categoria}`);
+
+      return res.status(200).json({
+        id: inscricaoId,
+        dev_mode: true,
+        message: "Inscrição criada com sucesso! (modo dev - pagamento simulado)",
+      });
+    }
 
     const mpResponse = await preference.create({ body: preferenceBody });
 
@@ -681,6 +716,77 @@ app.get("/inscricoes", authenticateToken, authorizeRoles(["admin"]), async (req,
   }
 });
 
+// Rota para criar inscrição pelo admin (protegida) - sem Mercado Pago
+app.post("/admin/inscricoes", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
+  const {
+    representante,
+    parceiro,
+    instagram_representante,
+    instagram_parceiro,
+    uniforme_representante,
+    uniforme_parceiro,
+    categoria,
+    ct_representante,
+    ct_parceiro,
+    celular,
+    status_pagamento,
+    segunda_inscricao_rep,
+    segunda_inscricao_parc,
+    observacao
+  } = req.body;
+
+  try {
+    if (!representante || !parceiro || !categoria) {
+      return res.status(400).json({ message: "Campos obrigatórios ausentes (representante, parceiro, categoria)" });
+    }
+
+    const vagasRes = await pool.query(
+      `SELECT vagas_totais, vagas_ocupadas FROM categorias WHERE nome = $1`,
+      [categoria]
+    );
+
+    if (vagasRes.rowCount === 0) {
+      return res.status(404).json({ message: "Categoria não encontrada" });
+    }
+
+    const statusFinal = status_pagamento || "approved";
+
+    const result = await pool.query(
+      `INSERT INTO inscricoes (
+        representante, parceiro, instagram_representante, instagram_parceiro,
+        uniforme_representante, uniforme_parceiro, categoria,
+        ct_representante, ct_parceiro, celular, status_pagamento,
+        segunda_inscricao_rep, segunda_inscricao_parc, observacao
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      [
+        representante, parceiro,
+        instagram_representante || "", instagram_parceiro || "",
+        uniforme_representante || "", uniforme_parceiro || "",
+        categoria, ct_representante || "", ct_parceiro || "",
+        celular || "", statusFinal,
+        !!segunda_inscricao_rep, !!segunda_inscricao_parc,
+        observacao || ""
+      ]
+    );
+
+    // Ocupar vaga se status é aprovado/campeao
+    const statusQueOcupamVaga = ['approved', 'campeao'];
+    if (statusQueOcupamVaga.includes(statusFinal)) {
+      await pool.query(
+        `UPDATE categorias SET vagas_ocupadas = vagas_ocupadas + 1 WHERE nome = $1`,
+        [categoria]
+      );
+    }
+
+    console.log(`✅ Inscrição criada pelo admin: ID ${result.rows[0].id} - ${representante}/${parceiro} - ${categoria}`);
+    res.status(201).json(result.rows[0]);
+
+  } catch (err) {
+    console.error("Erro ao criar inscrição (admin):", err);
+    res.status(500).json({ message: "Erro ao criar inscrição" });
+  }
+});
+
 // Rota para atualizar uma inscrição (protegida) - VERSÃO ATUALIZADA
 app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (req, res) => {
   const { id } = req.params;
@@ -697,8 +803,9 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
     ct_parceiro,
     celular,
     status_pagamento,
-    segunda_inscricao_rep,  // <-- CAMPO ATUALIZADO
-    segunda_inscricao_parc  // <-- NOVO CAMPO
+    segunda_inscricao_rep,
+    segunda_inscricao_parc,
+    observacao
   } = req.body;
 
   try {
@@ -732,11 +839,12 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         ct_parceiro = $9,
         celular = $10,
         status_pagamento = $11,
-        segunda_inscricao_rep = $12, -- <-- CAMPO ATUALIZADO
-        segunda_inscricao_parc = $13  -- <-- NOVO CAMPO
-      WHERE id = $14
+        segunda_inscricao_rep = $12,
+        segunda_inscricao_parc = $13,
+        observacao = $14
+      WHERE id = $15
       RETURNING *`,
-      [ // 3. Adiciona as novas variáveis ao array de parâmetros
+      [
         representante,
         parceiro,
         instagram_representante,
@@ -748,8 +856,9 @@ app.put("/inscricao/:id", authenticateToken, authorizeRoles(["admin"]), async (r
         ct_parceiro,
         celular,
         status_pagamento,
-        segunda_inscricao_rep, // <-- CAMPO ATUALIZADO
-        segunda_inscricao_parc, // <-- NOVO CAMPO
+        segunda_inscricao_rep,
+        segunda_inscricao_parc,
+        observacao || "",
         id
       ]
     );
@@ -856,9 +965,91 @@ app.get("/categorias", authenticateToken, authorizeRoles(["admin"]), async (req,
 app.get("/health", (req, res) => {
     res.status(200).send("OK");
 });
+
+// Auto-setup: criar tabelas se não existirem (dev)
+const setupDatabase = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS categorias (
+        nome VARCHAR(100) PRIMARY KEY,
+        vagas_totais INTEGER NOT NULL DEFAULT 16,
+        vagas_ocupadas INTEGER NOT NULL DEFAULT 0
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS inscricoes (
+        id SERIAL PRIMARY KEY,
+        representante VARCHAR(200) NOT NULL,
+        parceiro VARCHAR(200) NOT NULL,
+        instagram_representante VARCHAR(200),
+        instagram_parceiro VARCHAR(200),
+        uniforme_representante VARCHAR(100),
+        uniforme_parceiro VARCHAR(100),
+        categoria VARCHAR(100) NOT NULL REFERENCES categorias(nome),
+        ct_representante VARCHAR(200),
+        ct_parceiro VARCHAR(200),
+        celular VARCHAR(20),
+        status_pagamento VARCHAR(50) DEFAULT 'pending',
+        preference_id VARCHAR(200),
+        payment_id VARCHAR(200),
+        external_reference VARCHAR(200),
+        data_inscricao TIMESTAMP DEFAULT NOW(),
+        segunda_inscricao_rep BOOLEAN DEFAULT FALSE,
+        segunda_inscricao_parc BOOLEAN DEFAULT FALSE,
+        observacao TEXT DEFAULT ''
+      )
+    `);
+
+    // Adicionar coluna observacao se não existir (migração)
+    await pool.query(`ALTER TABLE inscricoes ADD COLUMN IF NOT EXISTS observacao TEXT DEFAULT ''`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS payment_preferences (
+        preference_id VARCHAR(200) PRIMARY KEY,
+        external_reference VARCHAR(200),
+        title VARCHAR(500),
+        amount DECIMAL(10,2),
+        status VARCHAR(50),
+        created_at TIMESTAMP,
+        updated_at TIMESTAMP,
+        payment_id VARCHAR(200),
+        payment_status_detail VARCHAR(200),
+        transaction_amount DECIMAL(10,2),
+        date_approved TIMESTAMP,
+        payer_email VARCHAR(300)
+      )
+    `);
+
+    // Seed categorias
+    const categorias = [
+      ['Feminino Escolinha', 16],
+      ['Masculino Escolinha', 24],
+      ['Feminino Iniciante', 16],
+      ['Misto Escolinha', 24],
+      ['Misto Iniciante', 16],
+      ['Misto Intermediário', 16],
+      ['Masculino Iniciante', 16],
+      ['Masculino Intermediário', 16],
+    ];
+    for (const [nome, vagas] of categorias) {
+      await pool.query(
+        `INSERT INTO categorias (nome, vagas_totais, vagas_ocupadas) VALUES ($1, $2, 0) ON CONFLICT (nome) DO NOTHING`,
+        [nome, vagas]
+      );
+    }
+
+    console.log("✅ Banco de dados configurado com sucesso");
+  } catch (err) {
+    console.error("❌ Erro ao configurar banco de dados:", err.message);
+    console.error("   Verifique se o PostgreSQL está rodando e o banco existe.");
+  }
+};
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, "0.0.0.0", async () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Servidor iniciado em: ${serverStartTime.toISOString()}`);
+  await setupDatabase();
 });
 

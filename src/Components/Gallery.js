@@ -5,7 +5,7 @@ function Gallery(){
   return (
     <div>
       <div className="Galeria-container">
-        <h1 className="tituloGaleria">FOTOS SEGUNDA ETAPA</h1>
+        <h1 className="tituloGaleria">GALERIA DE FOTOS</h1>
       <div className="botoes-container">
         {/* Botão 1: Link para as fotos do primeiro dia */}
         <a

@@ -6,7 +6,7 @@ function Home(){
     return(
         <div className="primeiraetapa-container" id="primeiraetapa" >
             <div className="titulo">
-            <h1>SEGUNDA ETAPA</h1> 
+            <h1>GALERIA</h1> 
            </div>
            <div className="galeria">
             <Gallery />
