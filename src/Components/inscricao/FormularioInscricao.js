@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
 import { FaTrophy } from "react-icons/fa";
 import { IoMdPeople } from "react-icons/io";
 import { IoShirt } from "react-icons/io5";
@@ -22,7 +21,6 @@ function SectionHeader({ icon: Icon, title }) {
 }
 
 export default function FormularioInscricao() {
-  const navigate = useNavigate();
   const [vagasRestantes, setVagasRestantes] = useState(null);
   const [formaPagamento, setFormaPagamento] = useState("pix");
   const [segundaInscricao, setSegundaInscricao] = useState(false);
