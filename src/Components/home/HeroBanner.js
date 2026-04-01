@@ -1,4 +1,4 @@
-import ImagemBanner from "../../images/terceiraetapaflyer.png";
+import ImagemBanner from "../../images/dataconfirmada.jpeg";
 
 export default function HeroBanner() {
   return (
