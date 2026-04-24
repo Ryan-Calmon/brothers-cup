@@ -5,19 +5,20 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import Header from "./Components/layout/Header";
 import Footer from "./Components/layout/Footer";
 import HeroBanner from "./Components/home/HeroBanner";
-import FormularioInscricao from "./Components/inscricao/FormularioInscricao";
+// import FormularioInscricao from "./Components/inscricao/FormularioInscricao"; // Inscrições temporariamente pelo Instagram
 import LocalMap from "./Components/home/LocalMap";
 import Gallery from "./Components/home/Gallery";
 import Contato from "./Components/home/Contato";
 import Patrocinadores from "./Components/home/Patrocinadores";
-import TabelaTorneio from "./Components/torneio/TabelaTorneio";
-import LoginPage from "./pages/LoginPage";
+import InstagramCta from "./Components/inscricao/InstagramCta";
 import Sucesso from "./pages/Sucesso";
-import AdminPage from "./pages/admin/AdminPage";
+// Painel admin desativado — gestão migrada para painel externo.
+// import LoginPage from "./pages/LoginPage";
+// import AdminPage from "./pages/admin/AdminPage";
 import Lightning from "./Components/Lightning";
 import { PageLoader } from "./Components/ui";
 import "./App.css";
@@ -28,11 +29,11 @@ if (process.env.NODE_ENV === "production") {
   Clarity.init("s9fs2d34fp");
 }
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return <PageLoader message="Verificando sessão..." />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return children;
+function ExternalRedirect({ to }) {
+  React.useEffect(() => {
+    window.location.replace(to);
+  }, [to]);
+  return <PageLoader message="Redirecionando..." />;
 }
 
 function HomePage() {
@@ -42,7 +43,7 @@ function HomePage() {
         <HeroBanner />
       </section>
       <section id="inscricao">
-        <FormularioInscricao />
+        <InstagramCta />
       </section>
       <section id="local">
         <LocalMap />
@@ -72,18 +73,13 @@ function App() {
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
               <Route path="/sucesso" element={<Sucesso />} />
-              <Route path="/tabelas" element={<TabelaTorneio />} />
+              <Route path="/tabelas" element={<ExternalRedirect to="https://tabelas-brotherscup.vercel.app/" />} />
               <Route path="/patrocinadores" element={<Patrocinadores />} />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminPage />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Painel admin desativado — redireciona para a home */}
+              <Route path="/admin" element={<Navigate to="/" replace />} />
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
 

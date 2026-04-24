@@ -21,10 +21,21 @@ module.exports = {
           light: "rgba(40, 30, 58, 1)",
           border: "rgba(81, 61, 112, 1)",
         },
+        gold: {
+          200: "#fde9a8",
+          300: "#fcd462",
+          400: "#f4b223",
+          500: "#d99413",
+          600: "#a86d08",
+        },
       },
       fontFamily: {
-        sans: ["Inter", "Roboto", "system-ui", "sans-serif"],
-        display: ["Inter", "sans-serif"],
+        sans: ["Sora", "Chivo", "system-ui", "sans-serif"],
+        display: ["'Bebas Neue'", "Anton", "Impact", "sans-serif"],
+        body: ["Sora", "Chivo", "system-ui", "sans-serif"],
+      },
+      letterSpacing: {
+        wider2: "0.18em",
       },
     },
   },
