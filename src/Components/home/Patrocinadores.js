@@ -85,7 +85,7 @@ export default function Patrocinadores() {
 
             <a
               className="btn btn--ghost"
-              href="https://wa.me/+5521959096545?text=Ol%C3%A1!%20Tenho%20interesse%20em%20patrocinar%20o%20Brothers%20Cup."
+              href="https://wa.me/+5521988280800?text=Ol%C3%A1!%20Tenho%20interesse%20em%20patrocinar%20o%20Brothers%20Cup."
               target="_blank"
               rel="noopener noreferrer"
             >

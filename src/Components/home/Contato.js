@@ -5,9 +5,9 @@ import { MdOutlineEmail } from "react-icons/md";
 const CHANNELS = [
   {
     icon: FaWhatsapp,
-    href: "https://wa.me/+5521959096545",
+    href: "https://wa.me/+5521988280800",
     label: "WhatsApp",
-    handle: "+55 21 95909-6545",
+    handle: "+55 21 98828-0800",
     accent: "#25d366",
     description: "Resposta rápida",
   },
