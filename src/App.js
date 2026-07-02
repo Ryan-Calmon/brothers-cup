@@ -11,7 +11,6 @@ import Footer from "./Components/layout/Footer";
 import HeroBanner from "./Components/home/HeroBanner";
 // import FormularioInscricao from "./Components/inscricao/FormularioInscricao"; // Inscrições temporariamente pelo Instagram
 import LocalMap from "./Components/home/LocalMap";
-import Gallery from "./Components/home/Gallery";
 import Contato from "./Components/home/Contato";
 import Patrocinadores from "./Components/home/Patrocinadores";
 import InstagramCta from "./Components/inscricao/InstagramCta";
@@ -47,9 +46,6 @@ function HomePage() {
       </section>
       <section id="local">
         <LocalMap />
-      </section>
-      <section id="primeiraetapa">
-        <Gallery />
       </section>
       <section id="contato">
         <Contato />

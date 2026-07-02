@@ -97,7 +97,7 @@ export default function Patrocinadores() {
           <div className="patro__cta-meta">
             <span>comercial@brotherscup.com.br</span>
             <span aria-hidden="true">·</span>
-            <span>+55 21 95909-6545</span>
+            <span>+55 21 98828-0800</span>
           </div>
         </div>
       </article>
